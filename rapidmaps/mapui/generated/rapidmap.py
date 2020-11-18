@@ -36,6 +36,26 @@ class MainFrame ( wx.Frame ):
 
 		self.SetMenuBar( self.m_menubar1 )
 
+		bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_scrolledWindow1 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
+		self.m_scrolledWindow1.SetScrollRate( 5, 5 )
+		bSizer3 = wx.BoxSizer( wx.VERTICAL )
+
+		self.canvas = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.canvas.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
+
+		bSizer3.Add( self.canvas, 1, wx.EXPAND |wx.ALL, 5 )
+
+
+		self.m_scrolledWindow1.SetSizer( bSizer3 )
+		self.m_scrolledWindow1.Layout()
+		bSizer3.Fit( self.m_scrolledWindow1 )
+		bSizer1.Add( self.m_scrolledWindow1, 1, wx.EXPAND |wx.ALL, 5 )
+
+
+		self.SetSizer( bSizer1 )
+		self.Layout()
 
 		self.Centre( wx.BOTH )
 

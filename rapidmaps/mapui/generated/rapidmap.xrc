@@ -24,5 +24,21 @@
 				</object>
 			</object>
 		</object>
+		<object class="wxScrolledWindow" name="m_scrolledWindow1">
+			<style>wxHSCROLL|wxVSCROLL</style>
+			<scrollrate>5,5</scrollrate>
+			<object class="wxBoxSizer">
+				<orient>wxVERTICAL</orient>
+				<object class="sizeritem">
+					<option>1</option>
+					<flag>wxEXPAND | wxALL</flag>
+					<border>5</border>
+					<object class="wxPanel" name="canvas">
+						<style>wxTAB_TRAVERSAL</style>
+						<bg>#000000</bg>
+					</object>
+				</object>
+			</object>
+		</object>
 	</object>
 </resource>
