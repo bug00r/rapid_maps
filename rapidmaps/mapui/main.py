@@ -1,4 +1,4 @@
-from rapidmaps.mapui.generated.rapidmap import MainFrame
+from rapidmaps.mapui.wxui.generated.rapidmap import MainFrame
 
 
 class RapidMapFrame(MainFrame):
