@@ -3,6 +3,7 @@
 	<object class="wxFrame" name="MainFrame">
 		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
 		<size>1208,728</size>
+		<bg>#ffffff</bg>
 		<title>Rapid Mapping tool</title>
 		<centered>1</centered>
 		<aui_managed>0</aui_managed>
@@ -38,7 +39,7 @@
 							<option>0</option>
 							<flag>wxALL|wxEXPAND</flag>
 							<border>5</border>
-							<object class="wxRadioBox" name="m_radioBox21">
+							<object class="wxRadioBox" name="m_actions">
 								<style>wxRA_SPECIFY_COLS</style>
 								<label>Actions</label>
 								<selection>0</selection>
@@ -53,7 +54,7 @@
 							<option>0</option>
 							<flag>wxALL</flag>
 							<border>5</border>
-							<object class="wxRadioBox" name="m_radioBox2">
+							<object class="wxRadioBox" name="m_shapes">
 								<style>wxRA_SPECIFY_COLS</style>
 								<enabled>0</enabled>
 								<label>Shapes</label>
@@ -86,6 +87,7 @@
 							<object class="wxPanel" name="canvas">
 								<style>wxTAB_TRAVERSAL</style>
 								<bg>#000000</bg>
+								<fg>#000000</fg>
 							</object>
 						</object>
 					</object>
