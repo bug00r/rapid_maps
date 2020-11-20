@@ -52,7 +52,13 @@ class MainFrame ( wx.Frame ):
 		self.m_shapes.SetSelection( 0 )
 		self.m_shapes.Enable( False )
 
-		bSizer31.Add( self.m_shapes, 0, wx.ALL, 5 )
+		bSizer31.Add( self.m_shapes, 0, wx.ALL|wx.EXPAND, 5 )
+
+		self.m_clear = wx.Button( self.m_panel3, wx.ID_ANY, u"Clear Map", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer31.Add( self.m_clear, 0, wx.ALL|wx.EXPAND, 5 )
+
+		self.m_button2 = wx.Button( self.m_panel3, wx.ID_ANY, u"Del Selected", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer31.Add( self.m_button2, 0, wx.ALL, 5 )
 
 
 		self.m_panel3.SetSizer( bSizer31 )
@@ -74,7 +80,7 @@ class MainFrame ( wx.Frame ):
 		self.m_scrolled_map.SetSizer( canvas_sizer )
 		self.m_scrolled_map.Layout()
 		canvas_sizer.Fit( self.m_scrolled_map )
-		bSizer1.Add( self.m_scrolled_map, 1, wx.EXPAND |wx.ALL, 5 )
+		bSizer1.Add( self.m_scrolled_map, 1, wx.ALL|wx.EXPAND, 5 )
 
 
 		self.SetSizer( bSizer1 )
@@ -88,6 +94,8 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.OnExit, id = self.m_mi_exit.GetId() )
 		self.m_actions.Bind( wx.EVT_RADIOBOX, self.OnActionChange )
 		self.m_shapes.Bind( wx.EVT_RADIOBOX, self.OnShapeChange )
+		self.m_clear.Bind( wx.EVT_BUTTON, self.OnClearMap )
+		self.m_button2.Bind( wx.EVT_BUTTON, self.OnRemoveSelected )
 		self.canvas.Bind( wx.EVT_LEFT_DOWN, self.OnMouseLeftDown )
 		self.canvas.Bind( wx.EVT_LEFT_UP, self.OnMouseLeftUp )
 		self.canvas.Bind( wx.EVT_MOTION, self.OnMouseMotion )
@@ -112,6 +120,12 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnShapeChange( self, event ):
+		event.Skip()
+
+	def OnClearMap( self, event ):
+		event.Skip()
+
+	def OnRemoveSelected( self, event ):
 		event.Skip()
 
 	def OnMouseLeftDown( self, event ):

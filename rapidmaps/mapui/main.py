@@ -17,6 +17,9 @@ class Shape(object):
     def draw_by_dc(self, dc: Any):
         pass
 
+    def intersect_by(self, point: wxPoint):
+        pass
+
 
 class Point(Shape):
     def __init__(self):
@@ -26,14 +29,20 @@ class Point(Shape):
         dc.DrawPoint(self._pos)
         print(f"Point: {self._pos}")
 
+    def intersect_by(self, point: wxPoint):
+        return self._pos == point
+
 
 class Circle(Shape):
     def __init__(self):
         super().__init__()
 
     def draw_by_dc(self, dc: Any):
-        dc.DrawCircle(self._pos, 5)
+        dc.DrawCircle(self._pos, 20)
         print(f"Circle: {self._pos}")
+
+    def intersect_by(self, point: wxPoint):
+        return (self._pos.x-20) <= point.x <= (self._pos.x + 20) and (self._pos.y-20) <= point.y <= (self._pos.y + 20)
 
 
 class Quad(Shape):
@@ -44,6 +53,9 @@ class Quad(Shape):
         dc.DrawRectangle(pt=self._pos, sz=Size(20, 20))
         print(f"Quad: {self._pos}")
 
+    def intersect_by(self, point: wxPoint):
+        return self._pos.x <= point.x <= (self._pos.x + 20) and self._pos.y <= point.y <= (self._pos.y + 20)
+
 
 class Triangle(Shape):
     def __init__(self):
@@ -52,6 +64,8 @@ class Triangle(Shape):
     def draw_by_dc(self, dc: Any):
         print(f"Triangle: {self._pos}")
 
+    def intersect_by(self, point: wxPoint):
+        return self._pos.x <= point.x <= (self._pos.x + 20) and self._pos.y <= point.y <= (self._pos.y + 20)
 
 class RapidMapFrame(MainFrame):
 
@@ -66,6 +80,9 @@ class RapidMapFrame(MainFrame):
         self.__sel_shape = None
         self.__bg_image = None
         self.__bg_isnew = False
+        self.__sel_shape = None
+        self.__last_sel_shape = None
+        self.__sel_shape_point = None
 
     def OnActionChange(self, event):
         # event.Skip()
@@ -76,7 +93,16 @@ class RapidMapFrame(MainFrame):
         event.Skip()
 
     def OnMouseLeftDown(self, event):
-        event.Skip()
+        self.__sel_shape_point = event.Position
+        for shape in self.__shape_obj:
+            if shape.intersect_by(self.__sel_shape_point):
+                self.__sel_shape = shape
+                self.__last_sel_shape = shape
+
+    def OnMouseMotion(self, event):
+        if self.__sel_shape and isinstance(self.__sel_shape, Shape):
+            self.__sel_shape.set_position(event.Position)
+            self.canvas.Refresh()
 
     def OnMouseLeftUp(self, event):
         if self.should_add_entity():
@@ -87,9 +113,9 @@ class RapidMapFrame(MainFrame):
             self.__shape_obj.append(new_obj)
             print(f"x: {self.__lm_release[0]} y: {self.__lm_release[1]} shape: {self.__sel_shape}")
             self.canvas.Refresh()
-
-    def OnMouseMotion(self, event):
-        event.Skip()
+        else:
+            self.__sel_shape = None
+            self.__sel_shape_point = None
 
     def OnPaint(self, event):
         dc = abDC(self.canvas)
@@ -149,3 +175,13 @@ class RapidMapFrame(MainFrame):
     def OnCanvasSize(self, event):
         if self.__bg_image:
             self.m_scrolled_map.SetVirtualSize(self.__bg_image.GetSize())
+
+    def OnClearMap(self, event):
+        self.__shape_obj.clear()
+        self.canvas.Refresh()
+
+    def OnRemoveSelected(self, event):
+        if self.__last_sel_shape:
+            self.__shape_obj.remove(self.__last_sel_shape)
+            self.__last_sel_shape = None
+            self.canvas.Refresh()
