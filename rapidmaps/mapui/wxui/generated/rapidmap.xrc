@@ -12,7 +12,7 @@
 			<fields>1</fields>
 		</object>
 		<object class="wxMenuBar" name="m_menubar1">
-			<object class="wxMenu" name="m_menu1">
+			<object class="wxMenu" name="m_menue_file">
 				<label>File</label>
 				<object class="wxMenuItem" name="m_mi_loadmap">
 					<label>Load Map</label>
@@ -75,7 +75,7 @@
 				<option>1</option>
 				<flag>wxEXPAND | wxALL</flag>
 				<border>5</border>
-				<object class="wxScrolledWindow" name="m_scrolledWindow1">
+				<object class="wxScrolledWindow" name="m_scrolled_map">
 					<style>wxHSCROLL|wxVSCROLL</style>
 					<scrollrate>5,5</scrollrate>
 					<object class="wxBoxSizer">
@@ -85,7 +85,7 @@
 							<flag>wxEXPAND | wxALL</flag>
 							<border>5</border>
 							<object class="wxPanel" name="canvas">
-								<style>wxTAB_TRAVERSAL</style>
+								<style>wxHSCROLL|wxTAB_TRAVERSAL|wxVSCROLL</style>
 								<bg>#000000</bg>
 								<fg>#000000</fg>
 							</object>

@@ -24,16 +24,16 @@ class MainFrame ( wx.Frame ):
 
 		self.m_statusmain = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
 		self.m_menubar1 = wx.MenuBar( 0 )
-		self.m_menu1 = wx.Menu()
-		self.m_mi_loadmap = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Load Map", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu1.Append( self.m_mi_loadmap )
+		self.m_menue_file = wx.Menu()
+		self.m_mi_loadmap = wx.MenuItem( self.m_menue_file, wx.ID_ANY, u"Load Map", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menue_file.Append( self.m_mi_loadmap )
 
-		self.m_menu1.AppendSeparator()
+		self.m_menue_file.AppendSeparator()
 
-		self.m_mi_exit = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu1.Append( self.m_mi_exit )
+		self.m_mi_exit = wx.MenuItem( self.m_menue_file, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menue_file.Append( self.m_mi_exit )
 
-		self.m_menubar1.Append( self.m_menu1, u"File" )
+		self.m_menubar1.Append( self.m_menue_file, u"File" )
 
 		self.SetMenuBar( self.m_menubar1 )
 
@@ -60,21 +60,21 @@ class MainFrame ( wx.Frame ):
 		bSizer31.Fit( self.m_panel3 )
 		bSizer1.Add( self.m_panel3, 0, wx.EXPAND |wx.ALL, 5 )
 
-		self.m_scrolledWindow1 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
-		self.m_scrolledWindow1.SetScrollRate( 5, 5 )
-		bSizer3 = wx.BoxSizer( wx.VERTICAL )
+		self.m_scrolled_map = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
+		self.m_scrolled_map.SetScrollRate( 5, 5 )
+		canvas_sizer = wx.BoxSizer( wx.VERTICAL )
 
-		self.canvas = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.canvas = wx.Panel( self.m_scrolled_map, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.TAB_TRAVERSAL|wx.VSCROLL )
 		self.canvas.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 		self.canvas.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 
-		bSizer3.Add( self.canvas, 1, wx.EXPAND |wx.ALL, 5 )
+		canvas_sizer.Add( self.canvas, 1, wx.EXPAND |wx.ALL, 5 )
 
 
-		self.m_scrolledWindow1.SetSizer( bSizer3 )
-		self.m_scrolledWindow1.Layout()
-		bSizer3.Fit( self.m_scrolledWindow1 )
-		bSizer1.Add( self.m_scrolledWindow1, 1, wx.EXPAND |wx.ALL, 5 )
+		self.m_scrolled_map.SetSizer( canvas_sizer )
+		self.m_scrolled_map.Layout()
+		canvas_sizer.Fit( self.m_scrolled_map )
+		bSizer1.Add( self.m_scrolled_map, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 		self.SetSizer( bSizer1 )
@@ -83,18 +83,31 @@ class MainFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.OnClose )
+		self.Bind( wx.EVT_MENU, self.OnLoadMap, id = self.m_mi_loadmap.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnExit, id = self.m_mi_exit.GetId() )
 		self.m_actions.Bind( wx.EVT_RADIOBOX, self.OnActionChange )
 		self.m_shapes.Bind( wx.EVT_RADIOBOX, self.OnShapeChange )
 		self.canvas.Bind( wx.EVT_LEFT_DOWN, self.OnMouseLeftDown )
 		self.canvas.Bind( wx.EVT_LEFT_UP, self.OnMouseLeftUp )
 		self.canvas.Bind( wx.EVT_MOTION, self.OnMouseMotion )
 		self.canvas.Bind( wx.EVT_PAINT, self.OnPaint )
+		self.canvas.Bind( wx.EVT_SIZE, self.OnCanvasSize )
 
 	def __del__( self ):
 		pass
 
 
 	# Virtual event handlers, overide them in your derived class
+	def OnClose( self, event ):
+		event.Skip()
+
+	def OnLoadMap( self, event ):
+		event.Skip()
+
+	def OnExit( self, event ):
+		event.Skip()
+
 	def OnActionChange( self, event ):
 		event.Skip()
 
@@ -111,6 +124,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnPaint( self, event ):
+		event.Skip()
+
+	def OnCanvasSize( self, event ):
 		event.Skip()
 
 
