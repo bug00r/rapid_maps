@@ -38,6 +38,8 @@ class Circle(Shape):
         super().__init__()
 
     def draw_by_dc(self, dc: Any):
+        dc.DrawText("Kreis", self._pos.x-20, self._pos.y-40)
+        dc.SetBrush(Brush(Colour(255,0,0)))
         dc.DrawCircle(self._pos, 20)
         print(f"Circle: {self._pos}")
 
@@ -50,6 +52,8 @@ class Quad(Shape):
         super().__init__()
 
     def draw_by_dc(self, dc: Any):
+        dc.DrawText("Quadrat", self._pos.x, self._pos.y - 20)
+        dc.SetBrush(Brush(Colour(255, 0, 128)))
         dc.DrawRectangle(pt=self._pos, sz=Size(20, 20))
         print(f"Quad: {self._pos}")
 
