@@ -13,6 +13,10 @@ class Shape(object):
         self._size = Size(20, 20)
         self._color = BLACK
         self._name = ""
+        self._scale = 1.0
+
+    def scale(self, scale):
+        self._scale = scale
 
     def get_color(self):
         return self._color
@@ -44,6 +48,14 @@ class Shape(object):
     def intersect_by(self, point: wxPoint):
         pass
 
+    def get_scaled_pos(self):
+        return wxPoint(self._pos.x * self._scale, self._pos.y * self._scale)
+
+    def get_scaled_size(self):
+        return Size(self._size.x * self._scale, self._size.y * self._scale)
+
+
+
 
 class Point(Shape):
     def __init__(self):
@@ -62,12 +74,16 @@ class Circle(Shape):
         self._name = "Kreis"
 
     def draw_by_dc(self, dc: Any):
-        dc.DrawText(self._name, self._pos.x-self._size.x, self._pos.y-(self._size.y+15))
+        pos = self.get_scaled_pos()
+        size = self.get_scaled_size()
+        dc.DrawText(self._name, pos.x-size.x, pos.y-(size.y+15))
         dc.SetBrush(Brush(self._color))
-        dc.DrawCircle(self._pos, self._size.x)
+        dc.DrawCircle(pos, size.x)
 
     def intersect_by(self, point: wxPoint):
-        return (self._pos.x-self._size.x) <= point.x <= (self._pos.x + self._size.x) and (self._pos.y-self._size.y) <= point.y <= (self._pos.y + self._size.y)
+        pos = self.get_scaled_pos()
+        size = self.get_scaled_size()
+        return (pos.x-size.x) <= point.x <= (pos.x + size.x) and (pos.y-size.y) <= point.y <= (pos.y + size.y)
 
 
 class Quad(Shape):
@@ -76,12 +92,16 @@ class Quad(Shape):
         self._name = "Quadrat"
 
     def draw_by_dc(self, dc: Any):
-        dc.DrawText(self._name, self._pos.x, self._pos.y - 20)
+        pos = self.get_scaled_pos()
+        size = self.get_scaled_size()
+        dc.DrawText(self._name, pos.x, pos.y - 20)
         dc.SetBrush(Brush(self._color))
-        dc.DrawRectangle(pt=self._pos, sz=self._size)
+        dc.DrawRectangle(pt=pos, sz=size)
 
     def intersect_by(self, point: wxPoint):
-        return self._pos.x <= point.x <= (self._pos.x + self._size.x) and self._pos.y <= point.y <= (self._pos.y + self._size.y)
+        pos = self.get_scaled_pos()
+        size = self.get_scaled_size()
+        return pos.x <= point.x <= (pos.x + size.x) and pos.y <= point.y <= (pos.y + size.y)
 
 
 class Triangle(Shape):
@@ -115,6 +135,7 @@ class RapidMapFrame(MainFrame):
         self.__sel_shape_point = None
         self.__last_move_pt = None
         self.__scaled_image = None
+        self.__scalefactor = 1.0
 
     def OnActionChange(self, event):
         # event.Skip()
@@ -137,7 +158,9 @@ class RapidMapFrame(MainFrame):
 
     def OnMouseMotion(self, event):
         if self.__sel_shape and isinstance(self.__sel_shape, Shape):
-            self.__sel_shape.set_position(self.__sel_shape.get_pos() + (event.Position-self.__last_move_pt))
+            """ TODO Issue on movement if relation between size"""
+            newpos = self.__sel_shape.get_pos() + ((event.Position - self.__last_move_pt)/self.__scalefactor)
+            self.__sel_shape.set_position(newpos)
             self.__last_move_pt = event.Position
             self.canvas.Refresh()
 
@@ -146,7 +169,8 @@ class RapidMapFrame(MainFrame):
             self.__lm_release = event.Position
             self.__sel_shape = self.m_shapes.Selection
             new_obj = self.__shape_clz[self.__sel_shape]()
-            new_obj.set_position(position=self.__lm_release)
+            new_obj.set_position(position=wxPoint(self.__lm_release.x/self.__scalefactor, self.__lm_release.y/self.__scalefactor))
+            new_obj.scale(self.__scalefactor)
             self.__shape_obj.append(new_obj)
             print(f"x: {self.__lm_release[0]} y: {self.__lm_release[1]} shape: {self.__sel_shape}")
             self.canvas.Refresh()
@@ -251,12 +275,14 @@ class RapidMapFrame(MainFrame):
     def OnMapZoom(self, event):
         if self.__bg_image and self.__bg_image:
             viewx, viewy = self.m_scrolled_map.GetViewStart()
-            scalefactor = 1.0 + (float(event.Int) / 100.0)
-            self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width*scalefactor, self.__bg_image.Height*scalefactor)
+            self.__scalefactor = 1.0 + (float(event.Int) / 100.0)
+            self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width*self.__scalefactor, self.__bg_image.Height*self.__scalefactor)
             self.__bg_bitmap = self.__scaled_image.ConvertToBitmap()
-            print(f"old size: {self.__bg_image.GetSize()} new Size {self.__scaled_image.GetSize()} scale factorr: {scalefactor}")
-            print(f"tg {self.m_scrolled_map.GetTargetRect()}")
+            print(f"old size: {self.__bg_image.GetSize()} new Size {self.__scaled_image.GetSize()} scale factorr: {self.__scalefactor}")
+            print(f"view start x:{viewx} y: {viewy} view size: {self.m_scrolled_map.GetSize()}")
             self.canvas.SetSize(self.__scaled_image.GetSize())
             self.canvas.Refresh()
             self.m_scrolled_map.SetVirtualSize(self.__scaled_image.GetSize())
-            self.m_scrolled_map.Scroll(viewx+(self.m_scrolled_map.GetSize().x/2), viewy+(self.m_scrolled_map.GetSize().y/2))
+            for shape in self.__shape_obj:
+                shape.scale(self.__scalefactor)
+            #self.m_scrolled_map.Scroll(viewx-(self.m_scrolled_map.GetSize().x/2), viewy-(self.m_scrolled_map.GetSize().y/2))
