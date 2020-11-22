@@ -136,6 +136,7 @@ class MainFrame ( wx.Frame ):
 		self.m_clear.Bind( wx.EVT_BUTTON, self.OnClearMap )
 		self.m_button2.Bind( wx.EVT_BUTTON, self.OnRemoveSelected )
 		self.m_zoom.Bind( wx.EVT_SCROLL_CHANGED, self.OnMapZoom )
+		self.m_scrolled_map.Bind( wx.EVT_SIZE, self.OnScrollMapSize )
 		self.canvas.Bind( wx.EVT_LEFT_DOWN, self.OnMouseLeftDown )
 		self.canvas.Bind( wx.EVT_LEFT_UP, self.OnMouseLeftUp )
 		self.canvas.Bind( wx.EVT_MOTION, self.OnMouseMotion )
@@ -178,6 +179,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnMapZoom( self, event ):
+		event.Skip()
+
+	def OnScrollMapSize( self, event ):
 		event.Skip()
 
 	def OnMouseLeftDown( self, event ):

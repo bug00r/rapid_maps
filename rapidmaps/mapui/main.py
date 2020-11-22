@@ -129,7 +129,6 @@ class RapidMapFrame(MainFrame):
         self.__sel_shape = None
         self.__bg_image = None
         self.__bg_bitmap = None
-        self.__bg_isnew = False
         self.__sel_shape = None
         self.__last_sel_shape = None
         self.__sel_shape_point = None
@@ -148,6 +147,7 @@ class RapidMapFrame(MainFrame):
     def OnMouseLeftDown(self, event):
         self.__sel_shape_point = event.Position
         self.__edit_enabled(False)
+        print("mouse down")
         for shape in self.__shape_obj:
             if shape.intersect_by(self.__sel_shape_point):
                 self.__sel_shape = shape
@@ -160,6 +160,7 @@ class RapidMapFrame(MainFrame):
         if self.__sel_shape and isinstance(self.__sel_shape, Shape):
             """ TODO Issue on movement if relation between size"""
             newpos = self.__sel_shape.get_pos() + ((event.Position - self.__last_move_pt)/self.__scalefactor)
+            print(f"old pos: {self.__sel_shape.get_pos()} add { (event.Position - self.__last_move_pt) } new pos { newpos }")
             self.__sel_shape.set_position(newpos)
             self.__last_move_pt = event.Position
             self.canvas.Refresh()
@@ -182,7 +183,6 @@ class RapidMapFrame(MainFrame):
         dc = abDC(self.canvas)
         if self.__bg_bitmap:
             dc.DrawBitmap(self.__bg_bitmap, 0, 0)
-            self.__bg_isnew = False
         elif not self.__bg_image:
             dc.SetBackground(Brush(Colour(0, 0, 0)))
             dc.Clear()
@@ -208,7 +208,6 @@ class RapidMapFrame(MainFrame):
                         pathname = fileDialog.GetPath()
                         self.__bg_image = wx.Image(pathname, wx.BITMAP_TYPE_ANY)
                         self.__bg_bitmap = self.__bg_image.ConvertToBitmap();
-                        self.__bg_isnew = True
                         self.canvas.SetSize(self.__bg_image.GetSize())
                         self.canvas.Refresh()
                         #self.m_scrolled_map.SetVirtualSize(self.__bg_image.GetSize())
@@ -233,7 +232,21 @@ class RapidMapFrame(MainFrame):
     def OnCanvasSize(self, event):
         if self.__bg_bitmap:
             size = self.__scaled_image.GetSize() if self.__scaled_image else self.__bg_image.GetSize()
-            self.m_scrolled_map.SetVirtualSize(size)
+            if self.m_scrolled_map.GetVirtualSize() != size:
+                #print(f"set new size event: {event.Size} v: {self.m_scrolled_map.GetVirtualSize()} image {size}")
+                self.m_scrolled_map.SetVirtualSize(size)
+            else:
+                #print(f"Skip on size event: {event.Size} v: {self.m_scrolled_map.GetVirtualSize()} image {size}")
+                event.Skip()
+        else:
+            event.Skip()
+
+    #def OnScrollMapSize(self, event):
+        #if self.__bg_bitmap:
+        #    size = self.__scaled_image.GetSize() if self.__scaled_image else self.__bg_image.GetSize()
+        #    self.m_scrolled_map.SetVirtualSize(size)
+        #else:
+        #    event.Skip()
 
     def OnClearMap(self, event):
         if self.__shape_obj:
