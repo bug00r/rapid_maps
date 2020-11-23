@@ -62,37 +62,28 @@ class Shape(object):
     def get_scaled_size(self):
         return self._size
 
-#incomplete
-class ScalableShape(Shape):
 
+class CharImage(Shape):
     def __init__(self):
         super().__init__()
-        self._scale = 1.0
-        self.__pos = wxPoint(self._pos)
-        self.__size = Size(self._size.x, self._size.y)
+        self._name = "Char"
+        self._path = "/home/bug0r/dev/python/rapid_maps/test/examplemaps/woman.png"
+        self._image = wx.Image(self._path, wx.BITMAP_TYPE_ANY)
+        self._bitmap = self._image.ConvertToBitmap()
+        self._size = self._bitmap.GetSize()
 
-    def scale(self, scale):
-        self._scale = scale
-        if scale > 1:
-            self.__pos = wxPoint(self._pos.x * scale, self._pos.y * scale)
-            self.__size = Size(self._size.x * scale, self._size.y * scale)
-        else:
-            self.__pos = wxPoint(self._pos)
-            self.__size = Size(self._size.x, self._size.y)
+    def draw_by_dc(self, dc: Any):
+        pos = self.get_scaled_pos()
+        size = self.get_scaled_size()
+        self._size = self._bitmap.GetSize()
+        dc.DrawText(self._name, pos.x, pos.y - 15)
+        dc.DrawBitmap(self._bitmap, pos.x, pos.y)
 
-    def set_size(self, size: Size):
-        self._size = size
-        self.__size = Size(self._size.x * self._scale, self._size.y * self._scale)
-
-    def set_pos(self, position: wxPoint):
-        self._pos = position
-        self.__pos = wxPoint(self._pos.x * self._scale, self._pos.y * self._scale)
-
-    def get_scaled_pos(self):
-        return self.__pos
-
-    def get_scaled_size(self):
-        return self.__size
+    def intersect_by(self, point: wxPoint):
+        pos = self.get_scaled_pos()
+        size = self.get_scaled_size()
+        self._size = self._bitmap.GetSize()
+        return pos.x <= point.x <= (pos.x + size.x) and pos.y <= point.y <= (pos.y + size.y)
 
 
 class Point(Shape):
@@ -109,7 +100,7 @@ class Point(Shape):
 class Circle(Shape):
     def __init__(self):
         super().__init__()
-        self._name = "Kreis"
+        self._name = "Circle"
 
     def draw_by_dc(self, dc: Any):
         pos = self.get_scaled_pos()
@@ -160,7 +151,7 @@ class RapidMapFrame(MainFrame):
         super().__init__(None)
         self.canvas.SetBackgroundStyle(BG_STYLE_PAINT)
         self.m_scrolled_map.SetAutoLayout(True)
-        self.__shape_clz = [Point, Quad, Circle, Triangle]
+        self.__shape_clz = [Point, Quad, Circle, Triangle, CharImage]
         self.__shape_obj = []
         self.__sel_action = 0
         self.__lm_release = None
