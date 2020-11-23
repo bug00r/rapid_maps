@@ -17,6 +17,14 @@ class Shape(object):
 
     def scale(self, scale):
         self._scale = scale
+        self.scale_pos(self._scale)
+        self.scale_size(self._scale)
+
+    def scale_pos(self, scale):
+        self._pos = wxPoint(self._pos.x * scale, self._pos.y * scale)
+
+    def scale_size(self, scale):
+        self._size = Size(self._size.x * scale, self._size.y * scale)
 
     def get_color(self):
         return self._color
@@ -36,11 +44,11 @@ class Shape(object):
     def set_size(self, size: Size):
         self._size = size
 
+    def set_pos(self, position: wxPoint):
+        self._pos = position
+
     def set_name(self, name: str):
         self._name = name
-
-    def set_position(self, position: wxPoint):
-        self._pos = position
 
     def draw_by_dc(self, dc: Any):
         pass
@@ -49,12 +57,42 @@ class Shape(object):
         pass
 
     def get_scaled_pos(self):
-        return wxPoint(self._pos.x * self._scale, self._pos.y * self._scale)
+        return self._pos
 
     def get_scaled_size(self):
-        return Size(self._size.x * self._scale, self._size.y * self._scale)
+        return self._size
 
+#incomplete
+class ScalableShape(Shape):
 
+    def __init__(self):
+        super().__init__()
+        self._scale = 1.0
+        self.__pos = wxPoint(self._pos)
+        self.__size = Size(self._size.x, self._size.y)
+
+    def scale(self, scale):
+        self._scale = scale
+        if scale > 1:
+            self.__pos = wxPoint(self._pos.x * scale, self._pos.y * scale)
+            self.__size = Size(self._size.x * scale, self._size.y * scale)
+        else:
+            self.__pos = wxPoint(self._pos)
+            self.__size = Size(self._size.x, self._size.y)
+
+    def set_size(self, size: Size):
+        self._size = size
+        self.__size = Size(self._size.x * self._scale, self._size.y * self._scale)
+
+    def set_pos(self, position: wxPoint):
+        self._pos = position
+        self.__pos = wxPoint(self._pos.x * self._scale, self._pos.y * self._scale)
+
+    def get_scaled_pos(self):
+        return self.__pos
+
+    def get_scaled_size(self):
+        return self.__size
 
 
 class Point(Shape):
@@ -134,7 +172,8 @@ class RapidMapFrame(MainFrame):
         self.__sel_shape_point = None
         self.__last_move_pt = None
         self.__scaled_image = None
-        self.__scalefactor = 1.0
+        self.__scalefactor = (1.0, 1.0)
+        self.__last_scalefactor = tuple(self.__scalefactor)
 
     def OnActionChange(self, event):
         # event.Skip()
@@ -159,9 +198,9 @@ class RapidMapFrame(MainFrame):
     def OnMouseMotion(self, event):
         if self.__sel_shape and isinstance(self.__sel_shape, Shape):
             """ TODO Issue on movement if relation between size"""
-            newpos = self.__sel_shape.get_pos() + ((event.Position - self.__last_move_pt)/self.__scalefactor)
-            print(f"old pos: {self.__sel_shape.get_pos()} add { (event.Position - self.__last_move_pt) } new pos { newpos }")
-            self.__sel_shape.set_position(newpos)
+            newpos = self.__sel_shape.get_pos() + (event.Position - self.__last_move_pt)
+            #print(f"old pos: {self.__sel_shape.get_pos()} add { (event.Position - self.__last_move_pt) } new pos { newpos }")
+            self.__sel_shape.set_pos(newpos)
             self.__last_move_pt = event.Position
             self.canvas.Refresh()
 
@@ -170,8 +209,8 @@ class RapidMapFrame(MainFrame):
             self.__lm_release = event.Position
             self.__sel_shape = self.m_shapes.Selection
             new_obj = self.__shape_clz[self.__sel_shape]()
-            new_obj.set_position(position=wxPoint(self.__lm_release.x/self.__scalefactor, self.__lm_release.y/self.__scalefactor))
-            new_obj.scale(self.__scalefactor)
+            new_obj.set_pos(position=self.__lm_release)
+            new_obj.scale_size(self.__scalefactor[0])
             self.__shape_obj.append(new_obj)
             print(f"x: {self.__lm_release[0]} y: {self.__lm_release[1]} shape: {self.__sel_shape}")
             self.canvas.Refresh()
@@ -288,8 +327,10 @@ class RapidMapFrame(MainFrame):
     def OnMapZoom(self, event):
         if self.__bg_image and self.__bg_image:
             viewx, viewy = self.m_scrolled_map.GetViewStart()
-            self.__scalefactor = 1.0 + (float(event.Int) / 100.0)
-            self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width*self.__scalefactor, self.__bg_image.Height*self.__scalefactor)
+            scale_factor = 1.0 + (float(event.Int) / 100.0)
+            self.__last_scalefactor = tuple(self.__scalefactor)
+            self.__scalefactor = (scale_factor, 1.0/scale_factor)
+            self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width*scale_factor, self.__bg_image.Height*scale_factor)
             self.__bg_bitmap = self.__scaled_image.ConvertToBitmap()
             print(f"old size: {self.__bg_image.GetSize()} new Size {self.__scaled_image.GetSize()} scale factorr: {self.__scalefactor}")
             print(f"view start x:{viewx} y: {viewy} view size: {self.m_scrolled_map.GetSize()}")
@@ -297,5 +338,5 @@ class RapidMapFrame(MainFrame):
             self.canvas.Refresh()
             self.m_scrolled_map.SetVirtualSize(self.__scaled_image.GetSize())
             for shape in self.__shape_obj:
-                shape.scale(self.__scalefactor)
+                shape.scale(self.__scalefactor[0] / self.__last_scalefactor[0])
             #self.m_scrolled_map.Scroll(viewx-(self.m_scrolled_map.GetSize().x/2), viewy-(self.m_scrolled_map.GetSize().y/2))

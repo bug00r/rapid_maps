@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Oct 26 2018)
+## Python code generated with wxFormBuilder (version 3.9.0 Nov 18 2020)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -71,7 +71,7 @@ class MainFrame ( wx.Frame ):
 		bSizer4.Add( self.m_staticText1, 0, wx.ALL, 5 )
 
 		self.m_size = wx.Slider( self.m_panel31, wx.ID_ANY, 20, 1, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
-		bSizer4.Add( self.m_size, 0, wx.ALL, 5 )
+		bSizer4.Add( self.m_size, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_colour = wx.ColourPickerCtrl( self.m_panel31, wx.ID_ANY, wx.BLACK, wx.DefaultPosition, wx.DefaultSize, wx.CLRP_DEFAULT_STYLE )
 		bSizer4.Add( self.m_colour, 0, wx.ALL|wx.EXPAND, 5 )
@@ -94,7 +94,7 @@ class MainFrame ( wx.Frame ):
 		bSizer31.Add( self.m_staticText3, 0, wx.ALL, 5 )
 
 		self.m_zoom = wx.Slider( self.m_panel3, wx.ID_ANY, 0, 0, 300, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
-		bSizer31.Add( self.m_zoom, 0, wx.ALL, 5 )
+		bSizer31.Add( self.m_zoom, 0, wx.ALL|wx.EXPAND, 5 )
 
 
 		self.m_panel3.SetSizer( bSizer31 )
