@@ -17,7 +17,7 @@ import wx.xrc
 class MainFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Rapid Mapping tool", pos = wx.DefaultPosition, size = wx.Size( 1208,728 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Rapid Mapping tool", pos = wx.DefaultPosition, size = wx.Size( 1208,766 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		self.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
@@ -81,16 +81,16 @@ class MainFrame ( wx.Frame ):
 
 		bSizer4.Add( self.m_staticText4, 0, wx.ALL, 5 )
 
-		self.m_slider3 = wx.Slider( self.m_panel31, wx.ID_ANY, 0, 0, 360, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
-		bSizer4.Add( self.m_slider3, 0, wx.ALL|wx.EXPAND, 5 )
+		self.m_rotation = wx.Slider( self.m_panel31, wx.ID_ANY, 0, 0, 360, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		bSizer4.Add( self.m_rotation, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_staticText5 = wx.StaticText( self.m_panel31, wx.ID_ANY, u"Text Größe:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText5.Wrap( -1 )
 
 		bSizer4.Add( self.m_staticText5, 0, wx.ALL, 5 )
 
-		self.m_slider4 = wx.Slider( self.m_panel31, wx.ID_ANY, 1, 1, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
-		bSizer4.Add( self.m_slider4, 0, wx.ALL|wx.EXPAND, 5 )
+		self.m_text_size = wx.Slider( self.m_panel31, wx.ID_ANY, 1, 1, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		bSizer4.Add( self.m_text_size, 0, wx.ALL|wx.EXPAND, 5 )
 
 
 		self.m_panel31.SetSizer( bSizer4 )
@@ -149,8 +149,8 @@ class MainFrame ( wx.Frame ):
 		self.m_name.Bind( wx.EVT_TEXT_ENTER, self.OnNameChanged )
 		self.m_size.Bind( wx.EVT_SCROLL, self.OnSizeChanged )
 		self.m_colour.Bind( wx.EVT_COLOURPICKER_CHANGED, self.OnColourChanged )
-		self.m_slider3.Bind( wx.EVT_SCROLL, self.OnRotationChanged )
-		self.m_slider4.Bind( wx.EVT_SCROLL, self.OnTextSizeChanged )
+		self.m_rotation.Bind( wx.EVT_SCROLL, self.OnRotationChanged )
+		self.m_text_size.Bind( wx.EVT_SCROLL, self.OnTextSizeChanged )
 		self.m_clear.Bind( wx.EVT_BUTTON, self.OnClearMap )
 		self.m_button2.Bind( wx.EVT_BUTTON, self.OnRemoveSelected )
 		self.m_zoom.Bind( wx.EVT_SCROLL_CHANGED, self.OnMapZoom )

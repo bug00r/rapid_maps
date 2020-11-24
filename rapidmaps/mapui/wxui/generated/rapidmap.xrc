@@ -2,7 +2,7 @@
 <resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
 	<object class="wxFrame" name="MainFrame">
 		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
-		<size>1208,728</size>
+		<size>1208,766</size>
 		<bg>#ffffff</bg>
 		<title>Rapid Mapping tool</title>
 		<centered>1</centered>
@@ -137,7 +137,7 @@
 										<option>0</option>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
-										<object class="wxSlider" name="m_slider3">
+										<object class="wxSlider" name="m_rotation">
 											<style>wxSL_HORIZONTAL</style>
 											<value>0</value>
 											<min>0</min>
@@ -157,7 +157,7 @@
 										<option>0</option>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
-										<object class="wxSlider" name="m_slider4">
+										<object class="wxSlider" name="m_text_size">
 											<style>wxSL_HORIZONTAL</style>
 											<value>1</value>
 											<min>1</min>

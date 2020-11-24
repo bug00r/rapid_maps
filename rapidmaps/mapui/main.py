@@ -21,9 +21,15 @@ class Shape(object):
     def set_text_size(self, text_size):
         self._text_size = text_size
 
-    def set_rotation(self, angle: int):
+    def set_angle(self, angle: int):
         self._angle = angle
         self._angle_changed = True
+
+    def get_angle(self):
+        return self._angle
+
+    def get_text_size(self):
+        return self._text_size
 
     def scale(self, scale):
         self._scale = scale
@@ -325,7 +331,7 @@ class RapidMapFrame(MainFrame):
 
     def OnRotationChanged(self, event):
         if self.__last_sel_shape:
-            self.__last_sel_shape.set_rotation(event.Int)
+            self.__last_sel_shape.set_angle(event.Int)
             self.canvas.Refresh()
 
     def OnColourChanged(self, event):
@@ -337,11 +343,15 @@ class RapidMapFrame(MainFrame):
         self.m_name.Enable(enabled)
         self.m_size.Enable(enabled)
         self.m_colour.Enable(enabled)
+        self.m_rotation.Enable(enabled)
+        self.m_text_size.Enable(enabled)
 
     def __set_edit_by(self, shape: Shape):
         self.m_name.SetValue(shape.get_name())
         self.m_size.SetValue(shape.get_size().x)
         self.m_colour.SetColour(shape.get_color())
+        self.m_rotation.SetValue(shape.get_angle())
+        self.m_text_size.SetValue(shape.get_text_size())
 
     def OnMapZoom(self, event):
         if self.__bg_image and self.__bg_image:
