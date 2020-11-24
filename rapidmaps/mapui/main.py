@@ -13,7 +13,17 @@ class Shape(object):
         self._size = Size(20, 20)
         self._color = BLACK
         self._name = ""
+        self._text_size = 12
         self._scale = 1.0
+        self._angle = 0
+        self._angle_changed = False
+
+    def set_text_size(self, text_size):
+        self._text_size = text_size
+
+    def set_rotation(self, angle: int):
+        self._angle = angle
+        self._angle_changed = True
 
     def scale(self, scale):
         self._scale = scale
@@ -26,13 +36,13 @@ class Shape(object):
     def scale_size(self, scale):
         self._size = Size(self._size.x * scale, self._size.y * scale)
 
-    def get_color(self):
+    def get_color(self) -> Colour:
         return self._color
 
     def get_size(self):
         return self._size
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self._name
 
     def get_pos(self):
@@ -56,10 +66,10 @@ class Shape(object):
     def intersect_by(self, point: wxPoint):
         pass
 
-    def get_scaled_pos(self):
+    def get_scaled_pos(self) -> wxPoint:
         return self._pos
 
-    def get_scaled_size(self):
+    def get_scaled_size(self) -> Size:
         return self._size
 
 
@@ -68,21 +78,43 @@ class CharImage(Shape):
         super().__init__()
         self._name = "Char"
         self._path = "/home/bug0r/dev/python/rapid_maps/test/examplemaps/woman.png"
-        self._image = wx.Image(self._path, wx.BITMAP_TYPE_ANY)
+        self._orig_image = wx.Image(self._path, wx.BITMAP_TYPE_ANY)
+        self._image = self._orig_image.Copy()
         self._bitmap = self._image.ConvertToBitmap()
         self._size = self._bitmap.GetSize()
 
     def draw_by_dc(self, dc: Any):
         pos = self.get_scaled_pos()
         size = self.get_scaled_size()
-        self._size = self._bitmap.GetSize()
-        dc.DrawText(self._name, pos.x, pos.y - 15)
+        imagechanged = False
+        rotimg = None
+
+        if size != self._bitmap.GetSize():
+            self._image = self._orig_image.Scale(size.width, size.height)
+            self._angle_changed = True
+            imagechanged = True
+
+        if self._angle_changed:
+            rotimg = self._image.Rotate(self._angle * 0.017453293, wxPoint(size.x * 0.5, size.y * 0.5))
+            self._angle_changed = False
+            imagechanged = True
+
+        if imagechanged:
+            usedimg = rotimg if rotimg else self._image
+            self._bitmap = usedimg.ConvertToBitmap()
+
+        font = dc.GetFont()
+        font.SetPointSize(self._text_size )
+        dc.SetFont(font)
+        txtw, txth = dc.GetTextExtent(self._name)
+        dc.DrawRoundedRectangle(pos.x, pos.y - (txth+6), txtw+6, txth+5, 2)
+        dc.DrawText(self._name, pos.x+3, pos.y - txth-2)
         dc.DrawBitmap(self._bitmap, pos.x, pos.y)
+
 
     def intersect_by(self, point: wxPoint):
         pos = self.get_scaled_pos()
         size = self.get_scaled_size()
-        self._size = self._bitmap.GetSize()
         return pos.x <= point.x <= (pos.x + size.x) and pos.y <= point.y <= (pos.y + size.y)
 
 
@@ -177,7 +209,6 @@ class RapidMapFrame(MainFrame):
     def OnMouseLeftDown(self, event):
         self.__sel_shape_point = event.Position
         self.__edit_enabled(False)
-        print("mouse down")
         for shape in self.__shape_obj:
             if shape.intersect_by(self.__sel_shape_point):
                 self.__sel_shape = shape
@@ -188,9 +219,7 @@ class RapidMapFrame(MainFrame):
 
     def OnMouseMotion(self, event):
         if self.__sel_shape and isinstance(self.__sel_shape, Shape):
-            """ TODO Issue on movement if relation between size"""
             newpos = self.__sel_shape.get_pos() + (event.Position - self.__last_move_pt)
-            #print(f"old pos: {self.__sel_shape.get_pos()} add { (event.Position - self.__last_move_pt) } new pos { newpos }")
             self.__sel_shape.set_pos(newpos)
             self.__last_move_pt = event.Position
             self.canvas.Refresh()
@@ -203,7 +232,6 @@ class RapidMapFrame(MainFrame):
             new_obj.set_pos(position=self.__lm_release)
             new_obj.scale_size(self.__scalefactor[0])
             self.__shape_obj.append(new_obj)
-            print(f"x: {self.__lm_release[0]} y: {self.__lm_release[1]} shape: {self.__sel_shape}")
             self.canvas.Refresh()
         else:
             self.__sel_shape = None
@@ -240,7 +268,6 @@ class RapidMapFrame(MainFrame):
                         self.__bg_bitmap = self.__bg_image.ConvertToBitmap();
                         self.canvas.SetSize(self.__bg_image.GetSize())
                         self.canvas.Refresh()
-                        #self.m_scrolled_map.SetVirtualSize(self.__bg_image.GetSize())
                     except IOError:
                         wx.LogError("Cannot open file '%s'." % pathname)
 
@@ -263,20 +290,11 @@ class RapidMapFrame(MainFrame):
         if self.__bg_bitmap:
             size = self.__scaled_image.GetSize() if self.__scaled_image else self.__bg_image.GetSize()
             if self.m_scrolled_map.GetVirtualSize() != size:
-                #print(f"set new size event: {event.Size} v: {self.m_scrolled_map.GetVirtualSize()} image {size}")
                 self.m_scrolled_map.SetVirtualSize(size)
             else:
-                #print(f"Skip on size event: {event.Size} v: {self.m_scrolled_map.GetVirtualSize()} image {size}")
                 event.Skip()
         else:
             event.Skip()
-
-    #def OnScrollMapSize(self, event):
-        #if self.__bg_bitmap:
-        #    size = self.__scaled_image.GetSize() if self.__scaled_image else self.__bg_image.GetSize()
-        #    self.m_scrolled_map.SetVirtualSize(size)
-        #else:
-        #    event.Skip()
 
     def OnClearMap(self, event):
         if self.__shape_obj:
@@ -300,6 +318,16 @@ class RapidMapFrame(MainFrame):
             self.__last_sel_shape.set_size(Size(event.Int, event.Int))
             self.canvas.Refresh()
 
+    def OnTextSizeChanged(self, event):
+        if self.__last_sel_shape:
+            self.__last_sel_shape.set_text_size(event.Int)
+            self.canvas.Refresh()
+
+    def OnRotationChanged(self, event):
+        if self.__last_sel_shape:
+            self.__last_sel_shape.set_rotation(event.Int)
+            self.canvas.Refresh()
+
     def OnColourChanged(self, event):
         if self.__last_sel_shape:
             self.__last_sel_shape.set_color(event.Colour)
@@ -317,17 +345,14 @@ class RapidMapFrame(MainFrame):
 
     def OnMapZoom(self, event):
         if self.__bg_image and self.__bg_image:
-            viewx, viewy = self.m_scrolled_map.GetViewStart()
             scale_factor = 1.0 + (float(event.Int) / 100.0)
             self.__last_scalefactor = tuple(self.__scalefactor)
             self.__scalefactor = (scale_factor, 1.0/scale_factor)
             self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width*scale_factor, self.__bg_image.Height*scale_factor)
             self.__bg_bitmap = self.__scaled_image.ConvertToBitmap()
-            print(f"old size: {self.__bg_image.GetSize()} new Size {self.__scaled_image.GetSize()} scale factorr: {self.__scalefactor}")
-            print(f"view start x:{viewx} y: {viewy} view size: {self.m_scrolled_map.GetSize()}")
             self.canvas.SetSize(self.__scaled_image.GetSize())
             self.canvas.Refresh()
             self.m_scrolled_map.SetVirtualSize(self.__scaled_image.GetSize())
+            new_scale = self.__scalefactor[0] * self.__last_scalefactor[1]
             for shape in self.__shape_obj:
-                shape.scale(self.__scalefactor[0] / self.__last_scalefactor[0])
-            #self.m_scrolled_map.Scroll(viewx-(self.m_scrolled_map.GetSize().x/2), viewy-(self.m_scrolled_map.GetSize().y/2))
+                shape.scale(new_scale)

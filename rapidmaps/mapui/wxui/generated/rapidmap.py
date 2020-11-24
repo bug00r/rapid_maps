@@ -76,6 +76,22 @@ class MainFrame ( wx.Frame ):
 		self.m_colour = wx.ColourPickerCtrl( self.m_panel31, wx.ID_ANY, wx.BLACK, wx.DefaultPosition, wx.DefaultSize, wx.CLRP_DEFAULT_STYLE )
 		bSizer4.Add( self.m_colour, 0, wx.ALL|wx.EXPAND, 5 )
 
+		self.m_staticText4 = wx.StaticText( self.m_panel31, wx.ID_ANY, u"Rotation:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText4.Wrap( -1 )
+
+		bSizer4.Add( self.m_staticText4, 0, wx.ALL, 5 )
+
+		self.m_slider3 = wx.Slider( self.m_panel31, wx.ID_ANY, 0, 0, 360, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		bSizer4.Add( self.m_slider3, 0, wx.ALL|wx.EXPAND, 5 )
+
+		self.m_staticText5 = wx.StaticText( self.m_panel31, wx.ID_ANY, u"Text Größe:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText5.Wrap( -1 )
+
+		bSizer4.Add( self.m_staticText5, 0, wx.ALL, 5 )
+
+		self.m_slider4 = wx.Slider( self.m_panel31, wx.ID_ANY, 1, 1, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		bSizer4.Add( self.m_slider4, 0, wx.ALL|wx.EXPAND, 5 )
+
 
 		self.m_panel31.SetSizer( bSizer4 )
 		self.m_panel31.Layout()
@@ -133,6 +149,8 @@ class MainFrame ( wx.Frame ):
 		self.m_name.Bind( wx.EVT_TEXT_ENTER, self.OnNameChanged )
 		self.m_size.Bind( wx.EVT_SCROLL, self.OnSizeChanged )
 		self.m_colour.Bind( wx.EVT_COLOURPICKER_CHANGED, self.OnColourChanged )
+		self.m_slider3.Bind( wx.EVT_SCROLL, self.OnRotationChanged )
+		self.m_slider4.Bind( wx.EVT_SCROLL, self.OnTextSizeChanged )
 		self.m_clear.Bind( wx.EVT_BUTTON, self.OnClearMap )
 		self.m_button2.Bind( wx.EVT_BUTTON, self.OnRemoveSelected )
 		self.m_zoom.Bind( wx.EVT_SCROLL_CHANGED, self.OnMapZoom )
@@ -170,6 +188,12 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnColourChanged( self, event ):
+		event.Skip()
+
+	def OnRotationChanged( self, event ):
+		event.Skip()
+
+	def OnTextSizeChanged( self, event ):
 		event.Skip()
 
 	def OnClearMap( self, event ):
