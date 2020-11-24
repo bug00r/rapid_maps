@@ -39,7 +39,14 @@ class MainFrame ( wx.Frame ):
 
 		bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 
-		self.m_panel3 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_splitter1 = wx.SplitterWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SP_3D )
+		self.m_splitter1.Bind( wx.EVT_IDLE, self.m_splitter1OnIdle )
+
+		self.m_scrolledWindow2 = wx.ScrolledWindow( self.m_splitter1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
+		self.m_scrolledWindow2.SetScrollRate( 5, 5 )
+		bSizer5 = wx.BoxSizer( wx.VERTICAL )
+
+		self.m_panel3 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer31 = wx.BoxSizer( wx.VERTICAL )
 
 		m_actionsChoices = [ u"Select", u"Add" ]
@@ -70,7 +77,7 @@ class MainFrame ( wx.Frame ):
 
 		bSizer4.Add( self.m_staticText1, 0, wx.ALL, 5 )
 
-		self.m_size = wx.Slider( self.m_panel31, wx.ID_ANY, 20, 1, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		self.m_size = wx.Slider( self.m_panel31, wx.ID_ANY, 20, 1, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL|wx.SL_LABELS )
 		bSizer4.Add( self.m_size, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_colour = wx.ColourPickerCtrl( self.m_panel31, wx.ID_ANY, wx.BLACK, wx.DefaultPosition, wx.DefaultSize, wx.CLRP_DEFAULT_STYLE )
@@ -81,7 +88,7 @@ class MainFrame ( wx.Frame ):
 
 		bSizer4.Add( self.m_staticText4, 0, wx.ALL, 5 )
 
-		self.m_rotation = wx.Slider( self.m_panel31, wx.ID_ANY, 0, 0, 360, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		self.m_rotation = wx.Slider( self.m_panel31, wx.ID_ANY, 0, -180, 180, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL|wx.SL_LABELS )
 		bSizer4.Add( self.m_rotation, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_staticText5 = wx.StaticText( self.m_panel31, wx.ID_ANY, u"Text Größe:", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -89,7 +96,7 @@ class MainFrame ( wx.Frame ):
 
 		bSizer4.Add( self.m_staticText5, 0, wx.ALL, 5 )
 
-		self.m_text_size = wx.Slider( self.m_panel31, wx.ID_ANY, 1, 1, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		self.m_text_size = wx.Slider( self.m_panel31, wx.ID_ANY, 1, 1, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL|wx.SL_LABELS )
 		bSizer4.Add( self.m_text_size, 0, wx.ALL|wx.EXPAND, 5 )
 
 
@@ -116,9 +123,13 @@ class MainFrame ( wx.Frame ):
 		self.m_panel3.SetSizer( bSizer31 )
 		self.m_panel3.Layout()
 		bSizer31.Fit( self.m_panel3 )
-		bSizer1.Add( self.m_panel3, 0, wx.EXPAND |wx.ALL, 5 )
+		bSizer5.Add( self.m_panel3, 0, wx.EXPAND |wx.ALL, 5 )
 
-		self.m_scrolled_map = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
+
+		self.m_scrolledWindow2.SetSizer( bSizer5 )
+		self.m_scrolledWindow2.Layout()
+		bSizer5.Fit( self.m_scrolledWindow2 )
+		self.m_scrolled_map = wx.ScrolledWindow( self.m_splitter1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
 		self.m_scrolled_map.SetScrollRate( 5, 5 )
 		canvas_sizer = wx.BoxSizer( wx.VERTICAL )
 
@@ -132,7 +143,8 @@ class MainFrame ( wx.Frame ):
 		self.m_scrolled_map.SetSizer( canvas_sizer )
 		self.m_scrolled_map.Layout()
 		canvas_sizer.Fit( self.m_scrolled_map )
-		bSizer1.Add( self.m_scrolled_map, 1, wx.ALL|wx.EXPAND, 5 )
+		self.m_splitter1.SplitVertically( self.m_scrolledWindow2, self.m_scrolled_map, 120 )
+		bSizer1.Add( self.m_splitter1, 1, wx.EXPAND, 5 )
 
 
 		self.SetSizer( bSizer1 )
@@ -222,5 +234,9 @@ class MainFrame ( wx.Frame ):
 
 	def OnCanvasSize( self, event ):
 		event.Skip()
+
+	def m_splitter1OnIdle( self, event ):
+		self.m_splitter1.SetSashPosition( 120 )
+		self.m_splitter1.Unbind( wx.EVT_IDLE )
 
 
