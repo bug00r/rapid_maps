@@ -3,7 +3,7 @@ from typing import Any
 import wx
 from wx import Point as wxPoint
 from wx import AutoBufferedPaintDC as abDC
-from wx import Size, BG_STYLE_PAINT, Brush, Colour, Exit, BLACK
+from wx import Size, BG_STYLE_PAINT, Brush, Colour, Exit, BLACK, GREEN
 
 
 class Shape(object):
@@ -17,6 +17,13 @@ class Shape(object):
         self._scale = 1.0
         self._angle = 0
         self._angle_changed = False
+        self._selected = False
+
+    def set_selected(self, selected: bool):
+        self._selected = selected
+
+    def get_selected(self):
+        return self._selected
 
     def set_text_size(self, text_size):
         self._text_size = text_size
@@ -63,11 +70,24 @@ class Shape(object):
     def set_pos(self, position: wxPoint):
         self._pos = position
 
+    def add_to_pos(self, delta: wxPoint):
+        self._pos += delta
+
     def set_name(self, name: str):
         self._name = name
 
     def draw_by_dc(self, dc: Any):
         pass
+
+    def _draw_outline(self, dc: Any):
+        if self._selected:
+            oldpen = dc.GetPen()
+            oldbrush = dc.GetBrush()
+            dc.SetPen(wx.Pen(GREEN, 2))
+            dc.SetBrush(wx.Brush(GREEN, wx.TRANSPARENT))
+            dc.DrawRoundedRectangle(self._pos.x, self._pos.y, self._size.width, self._size.height, 5)
+            dc.SetPen(oldpen)
+            dc.SetBrush(oldbrush)
 
     def intersect_by(self, point: wxPoint):
         pass
@@ -117,6 +137,7 @@ class CharImage(Shape):
         dc.DrawText(self._name, pos.x+3, pos.y - txth-2)
         dc.DrawBitmap(self._bitmap, pos.x, pos.y)
 
+        self._draw_outline(dc)
 
     def intersect_by(self, point: wxPoint):
         pos = self.get_scaled_pos()
@@ -183,6 +204,51 @@ class Triangle(Shape):
         return self._pos.x <= point.x <= (self._pos.x + 20) and self._pos.y <= point.y <= (self._pos.y + 20)
 
 
+class Selections(object):
+    def __init__(self):
+        self._shapes = dict()
+
+    def add(self, shape: Shape):
+        id_shape = id(shape)
+        if id_shape not in self._shapes:
+            shape.set_selected(True)
+            self._shapes[id_shape] = shape
+
+    def remove(self, shape: Shape):
+        id_shape = id(shape)
+        if id_shape in self._shapes:
+            shape.set_selected(False)
+            del self._shapes[id_shape]
+
+    def contains(self, shape):
+        return id(shape) in self._shapes
+
+    def clear(self):
+        for ids, shape in self._shapes.items():
+            shape.set_selected(False)
+        self._shapes.clear()
+
+    def action(self, action: callable, parameter):
+        for ids, shape in self._shapes.items():
+            action(shape, *parameter)
+
+    def action_on(self, action: str, parameter: list):
+        if hasattr(Shape, action) and callable(getattr(Shape, action)):
+            for ids, shape in self._shapes.items():
+                getattr(Shape, action)(shape, *parameter)
+
+    def intersect_any(self, point: wxPoint) -> bool:
+        for ids, shape in self._shapes.items():
+            if shape.intersect_by(point):
+                return True
+        return False
+
+    def is_empty(self):
+        return len(self._shapes) == 0
+
+def remove_from_list(shape, aList: list):
+    aList.remove(shape)
+
 class RapidMapFrame(MainFrame):
 
     def __init__(self):
@@ -203,6 +269,7 @@ class RapidMapFrame(MainFrame):
         self.__scaled_image = None
         self.__scalefactor = (1.0, 1.0)
         self.__last_scalefactor = tuple(self.__scalefactor)
+        self._selections = Selections()
 
     def OnActionChange(self, event):
         # event.Skip()
@@ -219,18 +286,31 @@ class RapidMapFrame(MainFrame):
             if shape.intersect_by(self.__sel_shape_point):
                 self.__sel_shape = shape
                 self.__last_sel_shape = shape
-                self.__edit_enabled(True)
-                self.__set_edit_by(shape)
                 self.__last_move_pt = self.__sel_shape_point
+                if event.controlDown:
+                    if self._selections.contains(shape) and (self.__last_move_pt != event.Position):
+                        self._selections.remove(shape)
+                    else:
+                        self._selections.add(shape)
+        if not self._selections.is_empty():
+            self.__edit_enabled(True)
+            self.__set_edit_by(shape)
+        self.canvas.Refresh()
 
     def OnMouseMotion(self, event):
-        if self.__sel_shape and isinstance(self.__sel_shape, Shape):
-            newpos = self.__sel_shape.get_pos() + (event.Position - self.__last_move_pt)
-            self.__sel_shape.set_pos(newpos)
-            self.__last_move_pt = event.Position
-            self.canvas.Refresh()
+        if not self._selections.is_empty():
+            if event.leftIsDown and self._selections.intersect_any(event.Position):
+                self._selections.action_on('add_to_pos', [(event.Position - self.__last_move_pt)])
+                self.__last_move_pt = event.Position
+                self.canvas.Refresh()
+        #if self.__sel_shape and isinstance(self.__sel_shape, Shape):
+            #newpos = self.__sel_shape.get_pos() + (event.Position - self.__last_move_pt)
+            #self.__sel_shape.set_pos(newpos)
 
     def OnMouseLeftUp(self, event):
+        if not event.controlDown:
+            self._selections.clear()
+            self.canvas.Refresh()
         if self.should_add_entity():
             self.__lm_release = event.Position
             self.__sel_shape = self.m_shapes.Selection
@@ -308,30 +388,29 @@ class RapidMapFrame(MainFrame):
             self.canvas.Refresh()
 
     def OnRemoveSelected(self, event):
-        if self.__last_sel_shape:
-            self.__shape_obj.remove(self.__last_sel_shape)
-            self.__last_sel_shape = None
-            self.__edit_enabled(False)
+        if not self._selections.is_empty():
+            self._selections.action(remove_from_list, [self.__shape_obj])
+            self._selections.clear()
             self.canvas.Refresh()
 
     def OnNameChanged(self, event):
-        if self.__last_sel_shape:
-            self.__last_sel_shape.set_name(event.String)
+        if not self._selections.is_empty():
+            self._selections.action_on('set_name', [event.String])
             self.canvas.Refresh()
 
     def OnSizeChanged(self, event):
-        if self.__last_sel_shape:
-            self.__last_sel_shape.set_size(Size(event.Int, event.Int))
+        if not self._selections.is_empty():
+            self._selections.action_on('set_size', [Size(event.Int, event.Int)])
             self.canvas.Refresh()
 
     def OnTextSizeChanged(self, event):
-        if self.__last_sel_shape:
-            self.__last_sel_shape.set_text_size(event.Int)
+        if not self._selections.is_empty():
+            self._selections.action_on('set_text_size', [event.Int])
             self.canvas.Refresh()
 
     def OnRotationChanged(self, event):
-        if self.__last_sel_shape:
-            self.__last_sel_shape.set_angle(event.Int)
+        if not self._selections.is_empty():
+            self._selections.action_on('set_angle', [event.Int])
             self.canvas.Refresh()
 
     def OnColourChanged(self, event):
