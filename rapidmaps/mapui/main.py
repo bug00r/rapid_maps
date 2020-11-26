@@ -303,9 +303,6 @@ class RapidMapFrame(MainFrame):
                 self._selections.action_on('add_to_pos', [(event.Position - self.__last_move_pt)])
                 self.__last_move_pt = event.Position
                 self.canvas.Refresh()
-        #if self.__sel_shape and isinstance(self.__sel_shape, Shape):
-            #newpos = self.__sel_shape.get_pos() + (event.Position - self.__last_move_pt)
-            #self.__sel_shape.set_pos(newpos)
 
     def OnMouseLeftUp(self, event):
         if not event.controlDown:
