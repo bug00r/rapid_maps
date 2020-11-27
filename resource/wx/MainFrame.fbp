@@ -14,7 +14,6 @@
         <property name="file">rapidmap</property>
         <property name="first_id">1000</property>
         <property name="help_provider">none</property>
-        <property name="image_path_wrapper_function_name"></property>
         <property name="indent_with_spaces"></property>
         <property name="internationalize">0</property>
         <property name="name">Rapid Map tool</property>
@@ -26,7 +25,6 @@
         <property name="skip_php_events">1</property>
         <property name="skip_python_events">1</property>
         <property name="ui_table">UI</property>
-        <property name="use_array_enum">0</property>
         <property name="use_enum">0</property>
         <property name="use_microsoft_bom">0</property>
         <object class="Frame" expanded="1">
@@ -89,6 +87,7 @@
                 <property name="font"></property>
                 <property name="hidden">0</property>
                 <property name="id">wxID_ANY</property>
+                <property name="label">MyMenuBar</property>
                 <property name="maximum_size"></property>
                 <property name="minimum_size"></property>
                 <property name="name">m_menubar1</property>
@@ -206,7 +205,7 @@
                         <property name="window_name"></property>
                         <property name="window_style"></property>
                         <object class="splitteritem" expanded="1">
-                            <object class="wxScrolledWindow" expanded="0">
+                            <object class="wxScrolledWindow" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -259,16 +258,16 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style">wxHSCROLL|wxVSCROLL</property>
-                                <object class="wxBoxSizer" expanded="0">
+                                <object class="wxBoxSizer" expanded="1">
                                     <property name="minimum_size"></property>
                                     <property name="name">bSizer5</property>
                                     <property name="orient">wxVERTICAL</property>
                                     <property name="permission">none</property>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND | wxALL</property>
                                         <property name="proportion">0</property>
-                                        <object class="wxPanel" expanded="0">
+                                        <object class="wxPanel" expanded="1">
                                             <property name="BottomDockable">1</property>
                                             <property name="LeftDockable">1</property>
                                             <property name="RightDockable">1</property>
@@ -319,7 +318,7 @@
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style">wxTAB_TRAVERSAL</property>
-                                            <object class="wxBoxSizer" expanded="0">
+                                            <object class="wxBoxSizer" expanded="1">
                                                 <property name="minimum_size"></property>
                                                 <property name="name">bSizer31</property>
                                                 <property name="orient">wxVERTICAL</property>
@@ -388,7 +387,7 @@
                                                         <property name="window_extra_style"></property>
                                                         <property name="window_name"></property>
                                                         <property name="window_style"></property>
-                                                        <event name="OnRadioBox">OnActionChange</event>
+                                                        <event name="OnRadioBox">m_actionsOnRadioBox</event>
                                                     </object>
                                                 </object>
                                                 <object class="sizeritem" expanded="0">
@@ -1105,7 +1104,6 @@
                                                         <property name="aui_name"></property>
                                                         <property name="aui_position"></property>
                                                         <property name="aui_row"></property>
-                                                        <property name="auth_needed">0</property>
                                                         <property name="best_size"></property>
                                                         <property name="bg"></property>
                                                         <property name="bitmap"></property>
@@ -1179,7 +1177,6 @@
                                                         <property name="aui_name"></property>
                                                         <property name="aui_position"></property>
                                                         <property name="aui_row"></property>
-                                                        <property name="auth_needed">0</property>
                                                         <property name="best_size"></property>
                                                         <property name="bg"></property>
                                                         <property name="bitmap"></property>
@@ -1488,11 +1485,13 @@
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style">wxTAB_TRAVERSAL</property>
-                                            <event name="OnLeftDown">OnMouseLeftDown</event>
-                                            <event name="OnLeftUp">OnMouseLeftUp</event>
-                                            <event name="OnMotion">OnMouseMotion</event>
-                                            <event name="OnPaint">OnPaint</event>
-                                            <event name="OnSize">OnCanvasSize</event>
+                                            <event name="OnKeyDown">canvasOnKeyDown</event>
+                                            <event name="OnKeyUp">canvasOnKeyUp</event>
+                                            <event name="OnLeftDown">canvasOnLeftDown</event>
+                                            <event name="OnLeftUp">canvasOnLeftUp</event>
+                                            <event name="OnMotion">canvasOnMotion</event>
+                                            <event name="OnPaint">canvasOnPaint</event>
+                                            <event name="OnSize">canvasOnSize</event>
                                         </object>
                                     </object>
                                 </object>

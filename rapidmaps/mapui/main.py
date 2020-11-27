@@ -1,4 +1,5 @@
 from rapidmaps.mapui.wxui.generated.rapidmap import MainFrame
+from rapidmaps.map.state import MapStateTranslator, MapState, MapStateType
 from typing import Any
 import wx
 from wx import Point as wxPoint
@@ -103,7 +104,7 @@ class CharImage(Shape):
     def __init__(self):
         super().__init__()
         self._name = "Char"
-        self._path = "/home/bug0r/dev/python/rapid_maps/test/examplemaps/woman.png"
+        self._path = "./../test/examplemaps/woman.png"
         self._orig_image = wx.Image(self._path, wx.BITMAP_TYPE_ANY)
         self._image = self._orig_image.Copy()
         self._bitmap = self._image.ConvertToBitmap()
@@ -246,8 +247,10 @@ class Selections(object):
     def is_empty(self):
         return len(self._shapes) == 0
 
+
 def remove_from_list(shape, aList: list):
     aList.remove(shape)
+
 
 class RapidMapFrame(MainFrame):
 
@@ -270,16 +273,25 @@ class RapidMapFrame(MainFrame):
         self.__scalefactor = (1.0, 1.0)
         self.__last_scalefactor = tuple(self.__scalefactor)
         self._selections = Selections()
+        # new parts
+        self._ms = MapState()
+        self._mst = MapStateTranslator(self._ms)
+        self._ms.set(MapStateType.SELECTION_UI, True)
+        self._ms.set(MapStateType.LEFT_CTRL, wx.wxEVT_KEY_UP)
+        self._ms.set(MapStateType.MOUSE_LEFT, wx.wxEVT_LEFT_UP)
 
-    def OnActionChange(self, event):
+    def m_actionsOnRadioBox(self, event):
         # event.Skip()
+        self._ms.set(MapStateType.SELECTION_UI, event.Selection == 0)
         self.__sel_action = event.Selection
         self.m_shapes.Enable(enable=self.should_add_entity())
 
     def OnShapeChange(self, event):
         event.Skip()
 
-    def OnMouseLeftDown(self, event):
+    def canvasOnLeftDown(self, event):
+        self._ms.set(MapStateType.MOUSE_LEFT, event.EventType)
+        self._mst.is_single_selection
         self.__sel_shape_point = event.Position
         self.__edit_enabled(False)
         for shape in self.__shape_obj:
@@ -296,15 +308,18 @@ class RapidMapFrame(MainFrame):
             self.__edit_enabled(True)
             self.__set_edit_by(shape)
         self.canvas.Refresh()
+        event.Skip()
 
-    def OnMouseMotion(self, event):
+    def canvasOnMotion(self, event):
         if not self._selections.is_empty():
             if event.leftIsDown and self._selections.intersect_any(event.Position):
                 self._selections.action_on('add_to_pos', [(event.Position - self.__last_move_pt)])
                 self.__last_move_pt = event.Position
                 self.canvas.Refresh()
 
-    def OnMouseLeftUp(self, event):
+    def canvasOnLeftUp(self, event):
+        self._ms.set(MapStateType.MOUSE_LEFT, event.EventType) #updateCanvasMouseWorkflow
+        self._mst.is_single_selection
         if not event.controlDown:
             self._selections.clear()
             self.canvas.Refresh()
@@ -319,8 +334,21 @@ class RapidMapFrame(MainFrame):
         else:
             self.__sel_shape = None
             self.__sel_shape_point = None
+        event.Skip()
 
-    def OnPaint(self, event):
+    def canvasOnKeyDown(self, event):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_CONTROL:
+            self._ms.set(MapStateType.LEFT_CTRL, event.EventType)
+        event.Skip()
+
+    def canvasOnKeyUp(self, event):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_CONTROL:
+            self._ms.set(MapStateType.LEFT_CTRL, event.EventType)
+        event.Skip()
+
+    def canvasOnPaint(self, event):
         dc = abDC(self.canvas)
         if self.__bg_bitmap:
             dc.DrawBitmap(self.__bg_bitmap, 0, 0)
@@ -369,7 +397,7 @@ class RapidMapFrame(MainFrame):
         if result == wx.ID_YES:
             Exit()
 
-    def OnCanvasSize(self, event):
+    def canvasOnSize( self, event):
         if self.__bg_bitmap:
             size = self.__scaled_image.GetSize() if self.__scaled_image else self.__bg_image.GetSize()
             if self.m_scrolled_map.GetVirtualSize() != size:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version 3.9.0 Nov 18 2020)
+## Python code generated with wxFormBuilder (version Oct 26 2018)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -156,7 +156,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.Bind( wx.EVT_MENU, self.OnLoadMap, id = self.m_mi_loadmap.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnExit, id = self.m_mi_exit.GetId() )
-		self.m_actions.Bind( wx.EVT_RADIOBOX, self.OnActionChange )
+		self.m_actions.Bind( wx.EVT_RADIOBOX, self.m_actionsOnRadioBox )
 		self.m_shapes.Bind( wx.EVT_RADIOBOX, self.OnShapeChange )
 		self.m_name.Bind( wx.EVT_TEXT_ENTER, self.OnNameChanged )
 		self.m_size.Bind( wx.EVT_SCROLL, self.OnSizeChanged )
@@ -167,11 +167,13 @@ class MainFrame ( wx.Frame ):
 		self.m_button2.Bind( wx.EVT_BUTTON, self.OnRemoveSelected )
 		self.m_zoom.Bind( wx.EVT_SCROLL_CHANGED, self.OnMapZoom )
 		self.m_scrolled_map.Bind( wx.EVT_SIZE, self.OnScrollMapSize )
-		self.canvas.Bind( wx.EVT_LEFT_DOWN, self.OnMouseLeftDown )
-		self.canvas.Bind( wx.EVT_LEFT_UP, self.OnMouseLeftUp )
-		self.canvas.Bind( wx.EVT_MOTION, self.OnMouseMotion )
-		self.canvas.Bind( wx.EVT_PAINT, self.OnPaint )
-		self.canvas.Bind( wx.EVT_SIZE, self.OnCanvasSize )
+		self.canvas.Bind( wx.EVT_KEY_DOWN, self.canvasOnKeyDown )
+		self.canvas.Bind( wx.EVT_KEY_UP, self.canvasOnKeyUp )
+		self.canvas.Bind( wx.EVT_LEFT_DOWN, self.canvasOnLeftDown )
+		self.canvas.Bind( wx.EVT_LEFT_UP, self.canvasOnLeftUp )
+		self.canvas.Bind( wx.EVT_MOTION, self.canvasOnMotion )
+		self.canvas.Bind( wx.EVT_PAINT, self.canvasOnPaint )
+		self.canvas.Bind( wx.EVT_SIZE, self.canvasOnSize )
 
 	def __del__( self ):
 		pass
@@ -187,7 +189,7 @@ class MainFrame ( wx.Frame ):
 	def OnExit( self, event ):
 		event.Skip()
 
-	def OnActionChange( self, event ):
+	def m_actionsOnRadioBox( self, event ):
 		event.Skip()
 
 	def OnShapeChange( self, event ):
@@ -220,19 +222,25 @@ class MainFrame ( wx.Frame ):
 	def OnScrollMapSize( self, event ):
 		event.Skip()
 
-	def OnMouseLeftDown( self, event ):
+	def canvasOnKeyDown( self, event ):
 		event.Skip()
 
-	def OnMouseLeftUp( self, event ):
+	def canvasOnKeyUp( self, event ):
 		event.Skip()
 
-	def OnMouseMotion( self, event ):
+	def canvasOnLeftDown( self, event ):
 		event.Skip()
 
-	def OnPaint( self, event ):
+	def canvasOnLeftUp( self, event ):
 		event.Skip()
 
-	def OnCanvasSize( self, event ):
+	def canvasOnMotion( self, event ):
+		event.Skip()
+
+	def canvasOnPaint( self, event ):
+		event.Skip()
+
+	def canvasOnSize( self, event ):
 		event.Skip()
 
 	def m_splitter1OnIdle( self, event ):

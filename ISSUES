@@ -1,0 +1,6 @@
+1. Scaling error in c++ Image
+        File "E:\dev\projects\github\python\projects\rapid_maps\rapidmaps\mapui\main.py", line 437, in OnMapZoom
+        self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width*scale_factor, self.__bg_image.Height*scale_factor)
+        wx._core.wxAssertionError: C++ assertion "data" failed at ..\..\src\common\image.cpp(503) in wxImage::ResampleNearest(): unable to create image
+
+    Solution: using own scale and scrolling see TODO-Item-4

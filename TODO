@@ -1,0 +1,7 @@
+1. adding statemachine
+2. improve selection mechanism(statemachine)
+3. improve selection based(statemachine)
+    - movement
+    - rotation
+4. improve map display
+    - using tiles with canvas ans two separate scrollbars
