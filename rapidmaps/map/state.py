@@ -15,10 +15,12 @@ class MapStateType(Enum):
     This Class holds the summary of all possible Map States.
     """
     UNKNOWN = auto()
-    SELECTED_POS = auto()
-    MOUSE_LEFT = auto()
-    LEFT_CTRL = auto()
-    SELECTION_UI = auto()
+    MOUSE_LEFT_POS = auto()             # mouse left down position
+    MOUSE_LEFT_RELEASE_POS = auto()     # mouse left up position
+    MOUSE_POS = auto()                  # mouse move position
+    MOUSE_LEFT = auto()                 # mouse left click state (up/down)
+    KB_CTRL = auto()                    # Keyboard CTRL State
+    SELECTION_UI = auto()               # UI Element, selection active
 
     @classmethod
     def contains(cls, state) -> bool:
@@ -116,7 +118,7 @@ class MapStateTranslator(object):
         mst = MapStateType
         ml = ms.get(mst.MOUSE_LEFT)
         sl = ms.get(mst.SELECTION_UI)
-        lc = ms.get(mst.LEFT_CTRL)
+        lc = ms.get(mst.KB_CTRL)
         return ml and sl and lc and (sl.value or lc.value == wx.wxEVT_KEY_DOWN) \
                and ml.last_value == wx.wxEVT_LEFT_DOWN \
                and ml.value == wx.wxEVT_LEFT_UP
