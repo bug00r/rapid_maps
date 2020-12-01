@@ -88,7 +88,9 @@ class RapidMapFrame(MainFrame):
 
     def canvasOnMotion(self, event):
         self._ms.set(MapStateType.MOUSE_POS, event.Position)
-        if self._mst.selection_is_moving:
+        if self._mst.is_selection_area_active:
+            self.canvas.Refresh()
+        elif self._mst.selection_is_moving:
             self._ms.set(MapStateType.SELECTION_IS_MOVING, True)
             self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff])
             self.__last_move_pt = event.Position
@@ -97,9 +99,27 @@ class RapidMapFrame(MainFrame):
             self._ms.set(MapStateType.SELECTION_IS_MOVING, False)
 
     def canvasOnLeftUp(self, event):
+        was_area_sel = self._mst.is_selection_area_active
+        selected_area = self._mst.current_selected_area
+
         self._ms.set(MapStateType.MOUSE_LEFT, event.EventType)
         self._ms.set(MapStateType.MOUSE_LEFT_RELEASE_POS, event.Position)
 
+        if was_area_sel:
+            if selected_area.width < 0:
+                selected_area.x = selected_area.x + selected_area.width
+                selected_area.width = abs(selected_area.width)
+            if selected_area.height < 0:
+                selected_area.y = selected_area.y + selected_area.height
+                selected_area.height = abs(selected_area.height)
+            for shape in self.__shape_obj:
+                if selected_area.Contains(shape.get_bbox()):
+                    self._selections.add(shape)
+                elif self._mst.should_add_selection:
+                    if not self._selections.contains(shape):
+                        self._selections.remove(shape)
+                else:
+                    self._selections.remove(shape)
         if self.should_add_entity():
             self.__lm_release = event.Position
             self.__sel_shape = self.m_shapes.Selection
@@ -140,6 +160,15 @@ class RapidMapFrame(MainFrame):
             dc.Clear()
         for shape in self.__shape_obj:
             shape.draw_by_dc(dc)
+        if self._mst.is_selection_area_active:
+            oldpen = dc.GetPen()
+            oldbrush = dc.GetBrush()
+            dc.SetPen(wx.Pen(GREEN, 2))
+            dc.SetBrush(wx.Brush(GREEN, wx.TRANSPARENT))
+            dc.DrawRectangle(self._mst.current_selected_area)
+            dc.SetPen(oldpen)
+            dc.SetBrush(oldbrush)
+
 
     def should_add_entity(self):
         return self._ms.get(MapStateType.ADDITION_MODE_UI).value

@@ -121,6 +121,11 @@ class MapStateTranslator(object):
         return self._ms.get(MapStateType.SELECTION_MODE_UI).value
 
     @property
+    def is_selection_area_active(self):
+        return not self.is_moving_mode_active and self.is_selection_mode_active \
+                and self._ms.get(MapStateType.MOUSE_LEFT).value == wx.wxEVT_LEFT_DOWN
+
+    @property
     def is_addition_mode_active(self):
         return self._ms.get(MapStateType.ADDITION_MODE_UI).value or \
                 self._ms.get(MapStateType.KB_ALT).value == wx.wxEVT_KEY_DOWN
@@ -145,3 +150,9 @@ class MapStateTranslator(object):
     def mouse_move_diff(self) -> wx.Point:
         mp = self._ms.get(MapStateType.MOUSE_POS)
         return mp.value - mp.last_value
+
+    @property
+    def current_selected_area(self) -> wx.Rect:
+        startpos = self._ms.get(MapStateType.MOUSE_LEFT_POS).value
+        area = self._ms.get(MapStateType.MOUSE_POS).value - startpos
+        return wx.Rect(startpos.x, startpos.y, area.x, area.y)

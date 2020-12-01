@@ -17,6 +17,9 @@ class Shape(object):
         self._angle_changed = False
         self._selected = False
 
+    def get_bbox(self):
+        return wx.Rect(self._pos, self._size)
+
     def set_selected(self, selected: bool):
         self._selected = selected
 
