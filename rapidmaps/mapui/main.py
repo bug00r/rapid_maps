@@ -19,7 +19,6 @@ class RapidMapFrame(MainFrame):
         self.m_scrolled_map.SetAutoLayout(True)
         self.__shape_clz = [Point, Quad, Circle, Triangle, CharImage]
         self.__shape_obj = []
-        self.__sel_action = 0
         self.__lm_release = None
         self.__sel_shape = None
         self.__bg_image = None
@@ -34,18 +33,23 @@ class RapidMapFrame(MainFrame):
         self._selections = Selections()
         # new parts
         self._ms = MapState()
-        self._mst = MapStateTranslator(self._ms)
-        self._ms.set(MapStateType.SELECTION_UI, True)
+        self._mst = MapStateTranslator(self._ms, self._selections)
+        self._ms.set(MapStateType.MOVING_MODE_UI, True)
+        self._ms.set(MapStateType.SELECTION_MODE_UI, False)
+        self._ms.set(MapStateType.ADDITION_MODE_UI, False)
+        self._ms.set(MapStateType.SELECTION_IS_MOVING, False)
         self._ms.set(MapStateType.KB_CTRL, wx.wxEVT_KEY_UP)
+        self._ms.set(MapStateType.KB_SHIFT, wx.wxEVT_KEY_UP)
+        self._ms.set(MapStateType.KB_ALT, wx.wxEVT_KEY_UP)
         self._ms.set(MapStateType.MOUSE_LEFT, wx.wxEVT_LEFT_UP)
         self._ms.set(MapStateType.MOUSE_LEFT_POS, wxPoint(-1, -1))
         self._ms.set(MapStateType.MOUSE_LEFT_RELEASE_POS, wxPoint(-1, -1))
 
-
-    def m_actionsOnRadioBox(self, event):
+    def on_mode_change(self, event):
         # event.Skip()
-        self._ms.set(MapStateType.SELECTION_UI, event.Selection == 0)
-        self.__sel_action = event.Selection
+        self._ms.set(MapStateType.MOVING_MODE_UI, event.Selection == 0)
+        self._ms.set(MapStateType.SELECTION_MODE_UI, event.Selection == 1)
+        self._ms.set(MapStateType.ADDITION_MODE_UI, event.Selection == 2)
         self.m_shapes.Enable(enable=self.should_add_entity())
 
     def OnShapeChange(self, event):
@@ -54,40 +58,48 @@ class RapidMapFrame(MainFrame):
     def canvasOnLeftDown(self, event):
         self._ms.set(MapStateType.MOUSE_LEFT, event.EventType)
         self._ms.set(MapStateType.MOUSE_LEFT_POS, event.Position)
-        self._mst.is_single_selection
-        self.__sel_shape_point = event.Position
-        self.__edit_enabled(False)
-        for shape in self.__shape_obj:
-            if shape.intersect_by(self.__sel_shape_point):
-                self.__sel_shape = shape
-                self.__last_sel_shape = shape
-                self.__last_move_pt = self.__sel_shape_point
-                if event.controlDown:
-                    if self._selections.contains(shape) and (self.__last_move_pt != event.Position):
-                        self._selections.remove(shape)
+
+        if not self._mst.is_moving_mode_active and self._mst.is_selection_mode_active:
+            self.__sel_shape_point = event.Position
+            self.__edit_enabled(False)
+            anyselected = False
+            for shape in self.__shape_obj:
+                if shape.intersect_by(self.__sel_shape_point):
+                    self.__sel_shape = shape
+                    self.__last_sel_shape = shape
+                    self.__last_move_pt = self.__sel_shape_point
+                    anyselected = True
+                    if self._mst.should_add_selection:
+                        if self._selections.contains(shape):
+                            self._selections.remove(shape)
+                        else:
+                            self._selections.add(shape)
                     else:
+                        self._selections.clear()
                         self._selections.add(shape)
-        if not self._selections.is_empty():
-            self.__edit_enabled(True)
-            self.__set_edit_by(shape)
+                if not self._selections.is_empty():
+                    self.__edit_enabled(True)
+                    self.__set_edit_by(shape)
+            if not self._mst.should_add_selection and not anyselected:
+                self._selections.clear()
+
         self.canvas.Refresh()
         event.Skip()
 
     def canvasOnMotion(self, event):
         self._ms.set(MapStateType.MOUSE_POS, event.Position)
-        if not self._selections.is_empty():
-            if event.leftIsDown and self._selections.intersect_any(event.Position):
-                self._selections.action_on('add_to_pos', [(event.Position - self.__last_move_pt)])
-                self.__last_move_pt = event.Position
-                self.canvas.Refresh()
+        if self._mst.selection_is_moving:
+            self._ms.set(MapStateType.SELECTION_IS_MOVING, True)
+            self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff])
+            self.__last_move_pt = event.Position
+            self.canvas.Refresh()
+        else:
+            self._ms.set(MapStateType.SELECTION_IS_MOVING, False)
 
     def canvasOnLeftUp(self, event):
         self._ms.set(MapStateType.MOUSE_LEFT, event.EventType)
         self._ms.set(MapStateType.MOUSE_LEFT_RELEASE_POS, event.Position)
-        self._mst.is_single_selection
-        if not event.controlDown:
-            self._selections.clear()
-            self.canvas.Refresh()
+
         if self.should_add_entity():
             self.__lm_release = event.Position
             self.__sel_shape = self.m_shapes.Selection
@@ -95,22 +107,28 @@ class RapidMapFrame(MainFrame):
             new_obj.set_pos(position=self.__lm_release)
             new_obj.scale_size(self.__scalefactor[0])
             self.__shape_obj.append(new_obj)
-            self.canvas.Refresh()
+            # self.canvas.Refresh()
         else:
             self.__sel_shape = None
             self.__sel_shape_point = None
+        self.canvas.Refresh()
         event.Skip()
 
-    def canvasOnKeyDown(self, event):
+    def _canvas_set_key(self, event):
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_CONTROL:
             self._ms.set(MapStateType.KB_CTRL, event.EventType)
+        elif keycode == wx.WXK_ALT:
+            self._ms.set(MapStateType.KB_ALT, event.EventType)
+        elif keycode == wx.WXK_SHIFT:
+            self._ms.set(MapStateType.KB_SHIFT, event.EventType)
+
+    def canvasOnKeyDown(self, event):
+        self._canvas_set_key(event)
         event.Skip()
 
     def canvasOnKeyUp(self, event):
-        keycode = event.GetKeyCode()
-        if keycode == wx.WXK_CONTROL:
-            self._ms.set(MapStateType.KB_CTRL, event.EventType)
+        self._canvas_set_key(event)
         event.Skip()
 
     def canvasOnPaint(self, event):
@@ -124,11 +142,11 @@ class RapidMapFrame(MainFrame):
             shape.draw_by_dc(dc)
 
     def should_add_entity(self):
-        return self.__sel_action == 1
+        return self._ms.get(MapStateType.ADDITION_MODE_UI).value
 
     def OnLoadMap(self, event):
         if self.__bg_image and wx.MessageBox("Do you really want to reload the Map?", "Please confirm",
-                         wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
+                                             wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
             event.Skip()
         else:
             with wx.FileDialog(self, "Open Map file",
@@ -162,7 +180,7 @@ class RapidMapFrame(MainFrame):
         if result == wx.ID_YES:
             Exit()
 
-    def canvasOnSize( self, event):
+    def canvasOnSize(self, event):
         if self.__bg_bitmap:
             size = self.__scaled_image.GetSize() if self.__scaled_image else self.__bg_image.GetSize()
             if self.m_scrolled_map.GetVirtualSize() != size:
@@ -226,8 +244,9 @@ class RapidMapFrame(MainFrame):
         if self.__bg_image and self.__bg_image:
             scale_factor = 1.0 + (float(event.Int) / 100.0)
             self.__last_scalefactor = tuple(self.__scalefactor)
-            self.__scalefactor = (scale_factor, 1.0/scale_factor)
-            self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width*scale_factor, self.__bg_image.Height*scale_factor)
+            self.__scalefactor = (scale_factor, 1.0 / scale_factor)
+            self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width * scale_factor,
+                                                        self.__bg_image.Height * scale_factor)
             self.__bg_bitmap = self.__scaled_image.ConvertToBitmap()
             self.canvas.SetSize(self.__scaled_image.GetSize())
             self.canvas.Refresh()

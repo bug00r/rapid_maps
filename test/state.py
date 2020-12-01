@@ -1,5 +1,9 @@
 import unittest
 from rapidmaps.map.state import MapStateType, MapStateEntity, MapState, MapStateTranslator
+from rapidmaps.map.selection import Selections
+from rapidmaps.map.shape import Point
+
+import wx
 
 
 class MyTestCase(unittest.TestCase):
@@ -42,9 +46,23 @@ class MyTestCase(unittest.TestCase):
 
     def test_map_state_translator(self):
         ms = MapState()
-        mst = MapStateTranslator(ms)
-        self.assertRaises(ValueError, MapStateTranslator, None)
-        self.assertRaises(ValueError, MapStateTranslator, "Wrong")
+        sel = Selections()
+        mst = MapStateTranslator(ms, sel)
+        self.assertRaises(ValueError, MapStateTranslator, None, None)
+        self.assertRaises(ValueError, MapStateTranslator, "Wrong", "bla")
+
+    def test_mst_selection_was_moved(self):
+        ms = MapState()
+        sel = Selections()
+        mst = MapStateTranslator(ms, sel)
+        sel.add(Point())
+        ms.set(MapStateType.MOUSE_POS, wx.Point(0, 0))
+        ms.set(MapStateType.MOUSE_POS, wx.Point(1, 1))
+        ms.set(MapStateType.MOUSE_LEFT, True)
+        ms.set(MapStateType.MOUSE_LEFT, False)
+        self.assertEqual(mst.selection_was_moved, True)
+        sel.clear()
+        self.assertEqual(mst.selection_was_moved, False)
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ from typing import Any, Union
 import wx
 
 from rapidmaps.core.type_tools import same_type
+from rapidmaps.map.selection import Selections
 
 
 class MapStateType(Enum):
@@ -20,7 +21,13 @@ class MapStateType(Enum):
     MOUSE_POS = auto()                  # mouse move position
     MOUSE_LEFT = auto()                 # mouse left click state (up/down)
     KB_CTRL = auto()                    # Keyboard CTRL State
-    SELECTION_UI = auto()               # UI Element, selection active
+    KB_SHIFT = auto()                   # Keyboard SHIFT State
+    KB_ALT = auto()                     # Keyboard ALT State
+    SELECTION_MODE_UI = auto()          # UI Element, selection active
+    ADDITION_MODE_UI = auto()           # UI Element, addition active
+    MOVING_MODE_UI = auto()             # UI Element, moving active
+    # combined states
+    SELECTION_IS_MOVING = auto()        # selected item woving around
 
     @classmethod
     def contains(cls, state) -> bool:
@@ -100,34 +107,41 @@ class MapStateTranslator(object):
     This class offers combined MapStates translated to
     User Interactions.
     """
-    def __init__(self, maps_state: MapState):
+    def __init__(self, maps_state: MapState, selections: Selections):
         if not maps_state or not isinstance(maps_state, MapState):
             raise ValueError("expecting MapState Object")
+        if not selections or not isinstance(selections, Selections):
+            raise ValueError("expecting Selections Object")
 
+        self._sel = selections
         self._ms = maps_state
 
     @property
-    def is_single_selection(self) -> bool:
-        """
-        true: (SELECTION_UI) or LEFT_CTRL(keyboard) pressed)
-                and
-              (MOUSE_LEFT(Mouse) was clicked(down followed by UP) )
-        :return: True or False
-        """
-        ms = self._ms
-        mst = MapStateType
-        ml = ms.get(mst.MOUSE_LEFT)
-        sl = ms.get(mst.SELECTION_UI)
-        lc = ms.get(mst.KB_CTRL)
-        return ml and sl and lc and (sl.value or lc.value == wx.wxEVT_KEY_DOWN) \
-               and ml.last_value == wx.wxEVT_LEFT_DOWN \
-               and ml.value == wx.wxEVT_LEFT_UP
-
+    def is_selection_mode_active(self):
+        return self._ms.get(MapStateType.SELECTION_MODE_UI).value
 
     @property
-    def is_area_selection(self) -> bool:
-        return False
+    def is_addition_mode_active(self):
+        return self._ms.get(MapStateType.ADDITION_MODE_UI).value or \
+                self._ms.get(MapStateType.KB_ALT).value == wx.wxEVT_KEY_DOWN
 
     @property
-    def selection_ends(self) -> bool:
-        return not (self.is_single_selection or self.is_area_selection)
+    def is_moving_mode_active(self):
+        return self._ms.get(MapStateType.MOVING_MODE_UI).value or \
+                self._ms.get(MapStateType.KB_SHIFT).value == wx.wxEVT_KEY_DOWN
+
+    @property
+    def should_add_selection(self) -> bool:
+        lc = self._ms.get(MapStateType.KB_CTRL)
+        return lc and lc.value == wx.wxEVT_KEY_DOWN and self.is_selection_mode_active
+
+    @property
+    def selection_is_moving(self) -> bool:
+        return not self._sel.is_empty() and self.mouse_move_diff != wx.Point(0, 0) \
+            and self.is_moving_mode_active \
+            and self._ms.get(MapStateType.MOUSE_LEFT).value == wx.wxEVT_LEFT_DOWN
+
+    @property
+    def mouse_move_diff(self) -> wx.Point:
+        mp = self._ms.get(MapStateType.MOUSE_POS)
+        return mp.value - mp.last_value

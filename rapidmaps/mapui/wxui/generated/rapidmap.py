@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Oct 26 2018)
+## Python code generated with wxFormBuilder (version 3.9.0 Nov 18 2020)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -49,7 +49,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel3 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer31 = wx.BoxSizer( wx.VERTICAL )
 
-		m_actionsChoices = [ u"Select", u"Add" ]
+		m_actionsChoices = [ u"Move", u"Select", u"Add" ]
 		self.m_actions = wx.RadioBox( self.m_panel3, wx.ID_ANY, u"Actions", wx.DefaultPosition, wx.DefaultSize, m_actionsChoices, 1, wx.RA_SPECIFY_COLS )
 		self.m_actions.SetSelection( 0 )
 		bSizer31.Add( self.m_actions, 0, wx.ALL|wx.EXPAND, 5 )
@@ -156,7 +156,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.Bind( wx.EVT_MENU, self.OnLoadMap, id = self.m_mi_loadmap.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnExit, id = self.m_mi_exit.GetId() )
-		self.m_actions.Bind( wx.EVT_RADIOBOX, self.m_actionsOnRadioBox )
+		self.m_actions.Bind( wx.EVT_RADIOBOX, self.on_mode_change )
 		self.m_shapes.Bind( wx.EVT_RADIOBOX, self.OnShapeChange )
 		self.m_name.Bind( wx.EVT_TEXT_ENTER, self.OnNameChanged )
 		self.m_size.Bind( wx.EVT_SCROLL, self.OnSizeChanged )
@@ -189,7 +189,7 @@ class MainFrame ( wx.Frame ):
 	def OnExit( self, event ):
 		event.Skip()
 
-	def m_actionsOnRadioBox( self, event ):
+	def on_mode_change( self, event ):
 		event.Skip()
 
 	def OnShapeChange( self, event ):
