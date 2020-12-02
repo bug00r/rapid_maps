@@ -5,6 +5,7 @@ from wx import BG_STYLE_PAINT, Exit
 
 from rapidmaps.map.shape import *
 from rapidmaps.map.selection import Selections
+from rapidmaps.map import RapidMap
 
 
 def remove_from_list(shape, aList: list):
@@ -16,7 +17,6 @@ class RapidMapFrame(MainFrame):
     def __init__(self):
         super().__init__(None)
         self.canvas.SetBackgroundStyle(BG_STYLE_PAINT)
-        self.m_scrolled_map.SetAutoLayout(True)
         self.__shape_clz = [Point, Quad, Circle, Triangle, CharImage]
         self.__shape_obj = []
         self.__bg_image = None
@@ -27,6 +27,7 @@ class RapidMapFrame(MainFrame):
         self.__last_scalefactor = tuple(self.__scalefactor)
         self._selections = Selections()
         # new parts
+        self._map = RapidMap()
         self._ms = MapState()
         self._mst = MapStateTranslator(self._ms, self._selections)
         self._ms.set(MapStateType.MOVING_MODE_UI, True)
@@ -58,7 +59,9 @@ class RapidMapFrame(MainFrame):
             self.__edit_enabled(False)
             anyselected = False
             for shape in self.__shape_obj:
-                if shape.intersect_by(event.Position):
+                sel_pos = wxPoint(self._map.view.viewport.x + event.Position.x,
+                                  self._map.view.viewport.y + event.Position.y)
+                if shape.intersect_by(sel_pos):
                     self.__sel_shape = shape
                     anyselected = True
                     if self._mst.should_add_selection:
@@ -103,6 +106,10 @@ class RapidMapFrame(MainFrame):
             if selected_area.height < 0:
                 selected_area.y = selected_area.y + selected_area.height
                 selected_area.height = abs(selected_area.height)
+
+            selected_area.x = self._map.view.viewport.x + selected_area.x
+            selected_area.y = self._map.view.viewport.y + selected_area.y
+
             for shape in self.__shape_obj:
                 if selected_area.Contains(shape.get_bbox()):
                     self._selections.add(shape)
@@ -114,7 +121,9 @@ class RapidMapFrame(MainFrame):
         if self.should_add_entity():
             self.__sel_shape = self.m_shapes.Selection
             new_obj = self.__shape_clz[self.__sel_shape]()
-            new_obj.set_pos(position=event.Position)
+            newpos = wx.Point(self._map.view.viewport.x + event.Position.x, \
+                              self._map.view.viewport.y + event.Position.y)
+            new_obj.set_pos(position=newpos)
             new_obj.scale_size(self.__scalefactor[0])
             self.__shape_obj.append(new_obj)
             # self.canvas.Refresh()
@@ -143,12 +152,22 @@ class RapidMapFrame(MainFrame):
     def canvasOnPaint(self, event):
         dc = abDC(self.canvas)
         if self.__bg_bitmap:
-            dc.DrawBitmap(self.__bg_bitmap, 0, 0)
+            normalized = wx.Rect(self._map.view.viewport.x, self._map.view.viewport.y, \
+                                 min(self.__bg_image.GetSize().width, self._map.view.viewport.width), \
+                                 min(self.__bg_image.GetSize().width, self._map.view.viewport.height))
+
+            subimg = self.__bg_image.GetSubImage(normalized)
+            dc.DrawBitmap(subimg.ConvertToBitmap(), 0, 0)
         elif not self.__bg_image:
             dc.SetBackground(Brush(Colour(0, 0, 0)))
             dc.Clear()
         for shape in self.__shape_obj:
-            shape.draw_by_dc(dc)
+            if shape.get_bbox().Intersects(self._map.view.viewport):
+                temppos = shape.get_pos()
+                shape.set_pos(wx.Point(temppos.x - self._map.view.viewport.x, \
+                                       temppos.y - self._map.view.viewport.y))
+                shape.draw_by_dc(dc)
+                shape.set_pos(temppos)
         if self._mst.is_selection_area_active:
             oldpen = dc.GetPen()
             oldbrush = dc.GetBrush()
@@ -158,6 +177,13 @@ class RapidMapFrame(MainFrame):
             dc.SetPen(oldpen)
             dc.SetBrush(oldbrush)
 
+
+    def _adjust_scrollbars(self):
+        if self.__bg_image:
+            newvize = self.__bg_image.GetSize()
+            realsize = self.canvas.GetSize()
+            self.m_map_hscroll.SetScrollbar(0, realsize.width, newvize.width, realsize.width, True)
+            self.m_map_vscroll.SetScrollbar(0, realsize.height, newvize.height, realsize.height, True)
 
     def should_add_entity(self):
         return self._ms.get(MapStateType.ADDITION_MODE_UI).value
@@ -177,8 +203,14 @@ class RapidMapFrame(MainFrame):
                     try:
                         pathname = fileDialog.GetPath()
                         self.__bg_image = wx.Image(pathname, wx.BITMAP_TYPE_ANY)
-                        self.__bg_bitmap = self.__bg_image.ConvertToBitmap();
-                        self.canvas.SetSize(self.__bg_image.GetSize())
+                        self.__bg_bitmap = self.__bg_image.ConvertToBitmap()
+                        self._adjust_scrollbars()
+                        #self.canvas.SetSize(self.__bg_image.GetSize())
+                        self._map.view.vsize = self.__bg_image.GetSize()
+                        self._map.view.viewport.x = 0
+                        self._map.view.viewport.y = 0
+                        self._map.view.viewport.width = self.canvas.GetSize().width
+                        self._map.view.viewport.height = self.canvas.GetSize().height
                         self.canvas.Refresh()
                     except IOError:
                         wx.LogError("Cannot open file '%s'." % pathname)
@@ -199,14 +231,18 @@ class RapidMapFrame(MainFrame):
             Exit()
 
     def canvasOnSize(self, event):
-        if self.__bg_bitmap:
+        self._map.view.rsize = event.Size
+        self._map.view.viewport.width = event.Size.width
+        self._map.view.viewport.height = event.Size.height
+        self._adjust_scrollbars()
+        """if self.__bg_bitmap:
             size = self.__scaled_image.GetSize() if self.__scaled_image else self.__bg_image.GetSize()
             if self.m_scrolled_map.GetVirtualSize() != size:
                 self.m_scrolled_map.SetVirtualSize(size)
             else:
                 event.Skip()
         else:
-            event.Skip()
+            event.Skip()"""
 
     def OnClearMap(self, event):
         if self.__shape_obj:
@@ -268,7 +304,22 @@ class RapidMapFrame(MainFrame):
             self.__bg_bitmap = self.__scaled_image.ConvertToBitmap()
             self.canvas.SetSize(self.__scaled_image.GetSize())
             self.canvas.Refresh()
-            self.m_scrolled_map.SetVirtualSize(self.__scaled_image.GetSize())
+            #self.m_scrolled_map.SetVirtualSize(self.__scaled_image.GetSize())
             new_scale = self.__scalefactor[0] * self.__last_scalefactor[1]
             for shape in self.__shape_obj:
                 shape.scale(new_scale)
+
+    def m_map_hscrollOnScroll(self, event):
+        self._map.view.viewport.x = event.Position
+        self.canvas.Refresh()
+
+    def m_map_hscrollOnScrollThumbRelease(self, event):
+        self.canvas.Refresh()
+
+    def m_map_vscrollOnScroll(self, event):
+        self._map.view.viewport.y = event.Position
+        self.canvas.Refresh()
+
+    def m_map_vscrollOnScrollThumbRelease(self, event):
+        self.canvas.Refresh()
+

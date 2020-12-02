@@ -226,19 +226,58 @@
 					</object>
 				</object>
 			</object>
-			<object class="wxScrolledWindow" name="m_scrolled_map">
-				<style>wxHSCROLL|wxVSCROLL</style>
-				<scrollrate>5,5</scrollrate>
+			<object class="wxPanel" name="m_panel6">
+				<style>wxTAB_TRAVERSAL</style>
 				<object class="wxBoxSizer">
-					<orient>wxVERTICAL</orient>
+					<orient>wxHORIZONTAL</orient>
 					<object class="sizeritem">
 						<option>1</option>
-						<flag>wxEXPAND | wxALL</flag>
+						<flag>wxEXPAND</flag>
 						<border>5</border>
-						<object class="wxPanel" name="canvas">
-							<style>wxTAB_TRAVERSAL</style>
-							<bg>#000000</bg>
-							<fg>#000000</fg>
+						<object class="wxBoxSizer">
+							<orient>wxVERTICAL</orient>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag>wxEXPAND | wxALL</flag>
+								<border>5</border>
+								<object class="wxPanel" name="canvas">
+									<style>wxTAB_TRAVERSAL</style>
+									<bg>#000000</bg>
+									<fg>#000000</fg>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxScrollBar" name="m_map_hscroll">
+									<style>wxSB_HORIZONTAL</style>
+									<value>0</value>
+									<thumbsize>1</thumbsize>
+									<range>100</range>
+									<pagesize>1</pagesize>
+								</object>
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxVERTICAL</orient>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxScrollBar" name="m_map_vscroll">
+									<style>wxSB_VERTICAL</style>
+									<value>0</value>
+									<thumbsize>1</thumbsize>
+									<range>100</range>
+									<pagesize>1</pagesize>
+								</object>
+							</object>
 						</object>
 					</object>
 				</object>

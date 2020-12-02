@@ -129,21 +129,36 @@ class MainFrame ( wx.Frame ):
 		self.m_scrolledWindow2.SetSizer( bSizer5 )
 		self.m_scrolledWindow2.Layout()
 		bSizer5.Fit( self.m_scrolledWindow2 )
-		self.m_scrolled_map = wx.ScrolledWindow( self.m_splitter1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
-		self.m_scrolled_map.SetScrollRate( 5, 5 )
-		canvas_sizer = wx.BoxSizer( wx.VERTICAL )
+		self.m_panel6 = wx.Panel( self.m_splitter1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer6 = wx.BoxSizer( wx.HORIZONTAL )
 
-		self.canvas = wx.Panel( self.m_scrolled_map, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer8 = wx.BoxSizer( wx.VERTICAL )
+
+		self.canvas = wx.Panel( self.m_panel6, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		self.canvas.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 		self.canvas.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 
-		canvas_sizer.Add( self.canvas, 1, wx.EXPAND |wx.ALL, 5 )
+		bSizer8.Add( self.canvas, 1, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_map_hscroll = wx.ScrollBar( self.m_panel6, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SB_HORIZONTAL )
+		bSizer8.Add( self.m_map_hscroll, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-		self.m_scrolled_map.SetSizer( canvas_sizer )
-		self.m_scrolled_map.Layout()
-		canvas_sizer.Fit( self.m_scrolled_map )
-		self.m_splitter1.SplitVertically( self.m_scrolledWindow2, self.m_scrolled_map, 120 )
+		bSizer6.Add( bSizer8, 1, wx.EXPAND, 5 )
+
+		bSizer7 = wx.BoxSizer( wx.VERTICAL )
+
+		self.m_map_vscroll = wx.ScrollBar( self.m_panel6, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SB_VERTICAL )
+		bSizer7.Add( self.m_map_vscroll, 1, wx.ALL|wx.EXPAND, 5 )
+
+
+		bSizer6.Add( bSizer7, 0, wx.EXPAND, 5 )
+
+
+		self.m_panel6.SetSizer( bSizer6 )
+		self.m_panel6.Layout()
+		bSizer6.Fit( self.m_panel6 )
+		self.m_splitter1.SplitVertically( self.m_scrolledWindow2, self.m_panel6, 120 )
 		bSizer1.Add( self.m_splitter1, 1, wx.EXPAND, 5 )
 
 
@@ -166,7 +181,6 @@ class MainFrame ( wx.Frame ):
 		self.m_clear.Bind( wx.EVT_BUTTON, self.OnClearMap )
 		self.m_button2.Bind( wx.EVT_BUTTON, self.OnRemoveSelected )
 		self.m_zoom.Bind( wx.EVT_SCROLL_CHANGED, self.OnMapZoom )
-		self.m_scrolled_map.Bind( wx.EVT_SIZE, self.OnScrollMapSize )
 		self.canvas.Bind( wx.EVT_KEY_DOWN, self.canvasOnKeyDown )
 		self.canvas.Bind( wx.EVT_KEY_UP, self.canvasOnKeyUp )
 		self.canvas.Bind( wx.EVT_LEFT_DOWN, self.canvasOnLeftDown )
@@ -174,6 +188,10 @@ class MainFrame ( wx.Frame ):
 		self.canvas.Bind( wx.EVT_MOTION, self.canvasOnMotion )
 		self.canvas.Bind( wx.EVT_PAINT, self.canvasOnPaint )
 		self.canvas.Bind( wx.EVT_SIZE, self.canvasOnSize )
+		self.m_map_hscroll.Bind( wx.EVT_SCROLL, self.m_map_hscrollOnScroll )
+		self.m_map_hscroll.Bind( wx.EVT_SCROLL_THUMBRELEASE, self.m_map_hscrollOnScrollThumbRelease )
+		self.m_map_vscroll.Bind( wx.EVT_SCROLL, self.m_map_vscrollOnScroll )
+		self.m_map_vscroll.Bind( wx.EVT_SCROLL_THUMBRELEASE, self.m_map_vscrollOnScrollThumbRelease )
 
 	def __del__( self ):
 		pass
@@ -219,9 +237,6 @@ class MainFrame ( wx.Frame ):
 	def OnMapZoom( self, event ):
 		event.Skip()
 
-	def OnScrollMapSize( self, event ):
-		event.Skip()
-
 	def canvasOnKeyDown( self, event ):
 		event.Skip()
 
@@ -241,6 +256,18 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def canvasOnSize( self, event ):
+		event.Skip()
+
+	def m_map_hscrollOnScroll( self, event ):
+		event.Skip()
+
+	def m_map_hscrollOnScrollThumbRelease( self, event ):
+		event.Skip()
+
+	def m_map_vscrollOnScroll( self, event ):
+		event.Skip()
+
+	def m_map_vscrollOnScrollThumbRelease( self, event ):
 		event.Skip()
 
 	def m_splitter1OnIdle( self, event ):
