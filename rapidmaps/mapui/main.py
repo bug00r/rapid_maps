@@ -107,17 +107,19 @@ class RapidMapFrame(MainFrame):
                 selected_area.y = selected_area.y + selected_area.height
                 selected_area.height = abs(selected_area.height)
 
-            selected_area.x = self._map.view.viewport.x + selected_area.x
-            selected_area.y = self._map.view.viewport.y + selected_area.y
+            if selected_area.width > 0 and selected_area.height > 0:
 
-            for shape in self.__shape_obj:
-                if selected_area.Contains(shape.get_bbox()):
-                    self._selections.add(shape)
-                elif self._mst.should_add_selection:
-                    if not self._selections.contains(shape):
+                selected_area.x = self._map.view.viewport.x + selected_area.x
+                selected_area.y = self._map.view.viewport.y + selected_area.y
+
+                for shape in self.__shape_obj:
+                    if selected_area.Contains(shape.get_bbox()):
+                        self._selections.add(shape)
+                    elif self._mst.should_add_selection:
+                        if not self._selections.contains(shape):
+                            self._selections.remove(shape)
+                    else:
                         self._selections.remove(shape)
-                else:
-                    self._selections.remove(shape)
         if self.should_add_entity():
             self.__sel_shape = self.m_shapes.Selection
             new_obj = self.__shape_clz[self.__sel_shape]()
@@ -126,7 +128,7 @@ class RapidMapFrame(MainFrame):
             new_obj.set_pos(position=newpos)
             new_obj.scale_size(self.__scalefactor[0])
             self.__shape_obj.append(new_obj)
-            # self.canvas.Refresh()
+            self.canvas.Refresh()
         else:
             self.__sel_shape = None
         self.canvas.Refresh()
@@ -161,6 +163,10 @@ class RapidMapFrame(MainFrame):
         elif not self.__bg_image:
             dc.SetBackground(Brush(Colour(0, 0, 0)))
             dc.Clear()
+            self._map.view.viewport.x = 0
+            self._map.view.viewport.y = 0
+            self._map.view.viewport.width = self.canvas.GetSize().width
+            self._map.view.viewport.height = self.canvas.GetSize().height
         for shape in self.__shape_obj:
             if shape.get_bbox().Intersects(self._map.view.viewport):
                 temppos = shape.get_pos()
