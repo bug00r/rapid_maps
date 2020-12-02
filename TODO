@@ -5,3 +5,8 @@
     - rotation
 4. improve map display
     - using tiles with canvas ans two separate scrollbars
+        Zooming:
+            - zoom in(making small image larger):
+                - subimage from scaled viewport width and height, based on center
+                - normalize this subimage to old viewport
+                - adjust scrollbar

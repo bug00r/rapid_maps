@@ -35,8 +35,18 @@ class MapView(object):
 class RapidMap(object):
 
     def __init__(self):
+        self._zoom = (1.0, 1.0)    # zoom factor and 1./scale (for mul)
         self._view = MapView()
 
     @property
     def view(self) -> wx.Rect:
         return self._view
+
+    @property
+    def zoom(self):
+        return self._zoom
+
+    @zoom.setter
+    def zoom(self, zoom: tuple):
+        self._zoom = zoom
+

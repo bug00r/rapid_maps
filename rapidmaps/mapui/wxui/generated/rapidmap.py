@@ -116,7 +116,7 @@ class MainFrame ( wx.Frame ):
 
 		bSizer31.Add( self.m_staticText3, 0, wx.ALL, 5 )
 
-		self.m_zoom = wx.Slider( self.m_panel3, wx.ID_ANY, 0, 0, 300, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		self.m_zoom = wx.Slider( self.m_panel3, wx.ID_ANY, 100, 10, 400, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
 		bSizer31.Add( self.m_zoom, 0, wx.ALL|wx.EXPAND, 5 )
 
 
