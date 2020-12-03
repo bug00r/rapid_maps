@@ -121,10 +121,18 @@ class RapidMapFrame(MainFrame):
         if self.should_add_entity():
             self.__sel_shape = self.m_shapes.Selection
             new_obj = self.__shape_clz[self.__sel_shape]()
-            newpos = wx.Point(self._map.view.viewport.x + event.Position.x, \
-                              self._map.view.viewport.y + event.Position.y)
+            #newpos = wx.Point(self._map.view.viewport.x + event.Position.x, \
+            #                  self._map.view.viewport.y + event.Position.y)
+            newpos = wx.Point(self._map.zoomedview.x + (event.Position.x * self._map.map_zoom_factor),
+                              self._map.zoomedview.y + (event.Position.y * self._map.map_zoom_factor))
+            """
+                    shape.set_pos(wx.Point((temppos.x - self._map.zoomedview.x) * self._map.object_zoom_factor,
+                                           (temppos.y - self._map.zoomedview.y) * self._map.object_zoom_factor))
+                    shape.set_size(wx.Size(tempsize.width * self._map.object_zoom_factor,
+                                           tempsize.height * self._map.object_zoom_factor))
+            """
             new_obj.set_pos(position=newpos)
-            new_obj.scale_size(self._map.zoom[1])
+            #new_obj.scale_size(self._map.object_zoom_factor)
             self.__shape_obj.append(new_obj)
             self.canvas.Refresh()
         else:
@@ -151,22 +159,23 @@ class RapidMapFrame(MainFrame):
 
     def canvasOnPaint(self, event):
         dc = abDC(self.canvas)
-        zoomedview = wx.Rect(self._map.view.viewport)
+        self._map.refresh_view_state()
+        """zoomedview = wx.Rect(self._map.view.viewport)
         zoomedview.width *= self._map.zoom[1]
         zoomedview.height *= self._map.zoom[1]
-        normalized = normalized = wx.Rect(self._map.view.viewport.x, self._map.view.viewport.y,
+        normalized = wx.Rect(self._map.view.viewport.x, self._map.view.viewport.y,
                                  min(self.__bg_image.GetSize().width if self.__bg_bitmap else self.canvas.GetSize().width,
                                      zoomedview.width),
                                  min(self.__bg_image.GetSize().height if self.__bg_bitmap else self.canvas.GetSize().height,
                                      zoomedview.height))
         should_scale_up = (zoomedview.width == normalized.width, zoomedview.height == normalized.height)
         object_zoom_factor = self._map.zoom[0] if should_scale_up[0] else self._map.zoom[1]
-        map_zoom_factor = self._map.zoom[1] if should_scale_up[0] else self._map.zoom[0]
+        map_zoom_factor = self._map.zoom[1] if should_scale_up[0] else self._map.zoom[0]"""
         if self.__bg_bitmap:
             """
                 if zoomed viewport width or height larger than image, we took image resolution 
             """
-            #normalized = wx.Rect(self._map.view.viewport.x, self._map.view.viewport.y,
+            # normalized = wx.Rect(self._map.view.viewport.x, self._map.view.viewport.y,
             #                     min(self.__bg_image.GetSize().width, zoomedview.width),
             #                     min(self.__bg_image.GetSize().height, zoomedview.height))
 
@@ -175,15 +184,17 @@ class RapidMapFrame(MainFrame):
                 if zoomed viewport is smaller than image we have cut zoomed image part and scaled up to 
                 canvas size.
             """
-            should_scale_up = (zoomedview.width == normalized.width, zoomedview.height == normalized.height)
-            scalew = self.canvas.GetSize().width if should_scale_up[0] else normalized.width * map_zoom_factor
-            scaleh = self.canvas.GetSize().height if should_scale_up[1] else normalized.height * map_zoom_factor
+            # should_scale_up = (zoomedview.width == normalized.width, zoomedview.height == normalized.height)
+            scalew = self.canvas.GetSize().width if self._map.should_scale_up[0] \
+                else self._map.normalized.width * self._map.map_zoom_factor
+            scaleh = self.canvas.GetSize().height if self._map.should_scale_up[1] \
+                else self._map.normalized.height * self._map.map_zoom_factor
 
-            if not should_scale_up[0] or not should_scale_up[1]:
+            if not self._map.should_scale_up[0] or not self._map.should_scale_up[1]:
                 dc.SetBackground(Brush(Colour(0, 0, 0)))
                 dc.Clear()
 
-            subimg = self.__bg_image.GetSubImage(normalized).Scale(scalew, scaleh)
+            subimg = self.__bg_image.GetSubImage(self._map.normalized).Scale(scalew, scaleh)
 
             dc.DrawBitmap(subimg.ConvertToBitmap(), 0, 0)
         elif not self.__bg_image:
@@ -194,14 +205,15 @@ class RapidMapFrame(MainFrame):
             self._map.view.viewport.width = self.canvas.GetSize().width
             self._map.view.viewport.height = self.canvas.GetSize().height
         for shape in self.__shape_obj:
-            if shape.get_bbox().Intersects(zoomedview):
-                if object_zoom_factor > 0:
+            if shape.get_bbox().Intersects(self._map.zoomedview):
+                if self._map.object_zoom_factor > 0:
                     temppos = shape.get_pos()
                     tempsize = shape.get_size()
-                    shape.set_pos(wx.Point((temppos.x - zoomedview.x) * object_zoom_factor,
-                                           (temppos.y - zoomedview.y) * object_zoom_factor))
-                    shape.set_size(wx.Size(tempsize.width * object_zoom_factor,
-                                           tempsize.height * object_zoom_factor))
+                    zoom = self._map.object_zoom_factor if self._map.should_scale_up[0] else self._map.map_zoom_factor
+                    shape.set_pos(wx.Point((temppos.x - self._map.zoomedview.x) * zoom,
+                                           (temppos.y - self._map.zoomedview.y) * zoom))
+                    shape.set_size(wx.Size(tempsize.width * zoom,
+                                           tempsize.height * zoom))
 
                     shape.draw_by_dc(dc)
                     shape.set_pos(temppos)
@@ -220,7 +232,8 @@ class RapidMapFrame(MainFrame):
             newvize = self.__bg_image.GetSize()
             realsize = self.canvas.GetSize()
             self.m_map_hscroll.SetScrollbar(0, realsize.width * self._map.zoom[1], newvize.width, realsize.width, True)
-            self.m_map_vscroll.SetScrollbar(0, realsize.height * self._map.zoom[1], newvize.height, realsize.height, True)
+            self.m_map_vscroll.SetScrollbar(0, realsize.height * self._map.zoom[1], newvize.height, realsize.height,
+                                            True)
 
     def should_add_entity(self):
         return self._ms.get(MapStateType.ADDITION_MODE_UI).value
@@ -240,14 +253,18 @@ class RapidMapFrame(MainFrame):
                     try:
                         pathname = fileDialog.GetPath()
                         self.__bg_image = wx.Image(pathname, wx.BITMAP_TYPE_ANY)
+                        self._map.bg_image = self.__bg_image
                         self.__bg_bitmap = self.__bg_image.ConvertToBitmap()
+                        self._map.bg_bitmap = self.__bg_bitmap
                         self._adjust_scrollbars()
-                        #self.canvas.SetSize(self.__bg_image.GetSize())
+                        # self.canvas.SetSize(self.__bg_image.GetSize())
                         self._map.view.vsize = self.__bg_image.GetSize()
                         self._map.view.viewport.x = 0
                         self._map.view.viewport.y = 0
                         self._map.view.viewport.width = self.canvas.GetSize().width
                         self._map.view.viewport.height = self.canvas.GetSize().height
+                        self._map.zoom = (1.0, 1.0)
+                        self._map.refresh_view_state()
                         self.canvas.Refresh()
                     except IOError:
                         wx.LogError("Cannot open file '%s'." % pathname)
@@ -271,6 +288,7 @@ class RapidMapFrame(MainFrame):
         self._map.view.rsize = event.Size
         self._map.view.viewport.width = event.Size.width
         self._map.view.viewport.height = event.Size.height
+        self._map.refresh_view_state()
         self._adjust_scrollbars()
 
     def OnClearMap(self, event):
@@ -325,9 +343,10 @@ class RapidMapFrame(MainFrame):
 
     def OnMapZoom(self, event):
         if self.__bg_image:
-            #zoom_factor = 1.0 + (float(event.Int) / 100.0)
+            # zoom_factor = 1.0 + (float(event.Int) / 100.0)
             zoom_factor = float(event.Int) / 100.0
             self._map.zoom = (zoom_factor, 1.0 / zoom_factor)
+            self._map.refresh_view_state()
             self._adjust_scrollbars()
             self.canvas.Refresh()
             """self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width * zoom_factor,
@@ -336,22 +355,24 @@ class RapidMapFrame(MainFrame):
             self.canvas.SetSize(self.__scaled_image.GetSize())
             self.canvas.Refresh()
             self.m_scrolled_map.SetVirtualSize(self.__scaled_image.GetSize())"""
-            #new_scale = self.__zoomfactor[0] * self.__last_zoomfactor[1]
-            #for shape in self.__shape_obj:
+            # new_scale = self.__zoomfactor[0] * self.__last_zoomfactor[1]
+            # for shape in self.__shape_obj:
             #    shape.scale(self._map.zoom[0])
-
 
     def m_map_hscrollOnScroll(self, event):
         self._map.view.viewport.x = event.Position
+        self._map.refresh_view_state()
         self.canvas.Refresh()
 
     def m_map_hscrollOnScrollThumbRelease(self, event):
+        self._map.refresh_view_state()
         self.canvas.Refresh()
 
     def m_map_vscrollOnScroll(self, event):
         self._map.view.viewport.y = event.Position
+        self._map.refresh_view_state()
         self.canvas.Refresh()
 
     def m_map_vscrollOnScrollThumbRelease(self, event):
+        self._map.refresh_view_state()
         self.canvas.Refresh()
-
