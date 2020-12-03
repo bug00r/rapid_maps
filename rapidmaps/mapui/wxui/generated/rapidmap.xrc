@@ -217,7 +217,7 @@
 									<object class="wxSlider" name="m_zoom">
 										<style>wxSL_HORIZONTAL</style>
 										<value>100</value>
-										<min>10</min>
+										<min>1</min>
 										<max>400</max>
 									</object>
 								</object>
