@@ -166,6 +166,22 @@ class RapidMapFrame(MainFrame):
         self._map.refresh_view_state()
 
         if self._map.bg_bitmap:
+
+            ## If scroll position + normalized screen width overflows on zoom we have to recalculate and refresh
+            scrolloverx = self._map.bg_bitmap.GetSize().width - (self._map.normalized.x + self._map.normalized.width)
+            scrolloverx = 0.0 if scrolloverx > 0 else scrolloverx
+
+            scrollovery = self._map.bg_bitmap.GetSize().height - (self._map.normalized.y + self._map.normalized.height)
+            scrollovery = 0.0 if scrollovery > 0 else scrollovery
+
+            self._map.view.viewport.x += scrolloverx
+            self._map.view.viewport.y += scrollovery
+            self._adjust_scrollbars()
+
+            if scrollovery != 0.0 or scrolloverx != 0.0:
+                self._map.refresh_view_state()
+            ###  ugly but it works, refacoring in the future ;)
+
             scalew = self.canvas.GetSize().width if self._map.should_scale_up[0] \
                 else self._map.normalized.width * self._map.map_zoom_factor
             scaleh = self.canvas.GetSize().height if self._map.should_scale_up[1] \
@@ -212,9 +228,13 @@ class RapidMapFrame(MainFrame):
         if self._map.bg_image:
             newvize = self._map.bg_image.GetSize()
             realsize = self.canvas.GetSize()
-            self.m_map_hscroll.SetScrollbar(0, realsize.width * self._map.zoom[1], newvize.width, realsize.width, True)
-            self.m_map_vscroll.SetScrollbar(0, realsize.height * self._map.zoom[1], newvize.height, realsize.height,
-                                            True)
+
+            zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
+
+            self.m_map_hscroll.SetScrollbar(self._map.view.viewport.x,
+                                            realsize.width * zoom, newvize.width, realsize.width, True)
+            self.m_map_vscroll.SetScrollbar(self._map.view.viewport.y,
+                                            realsize.height * zoom, newvize.height, realsize.height, True)
 
     def should_add_entity(self):
         return self._ms.get(MapStateType.ADDITION_MODE_UI).value
@@ -243,7 +263,10 @@ class RapidMapFrame(MainFrame):
                         self._map.view.viewport.height = self.canvas.GetSize().height
                         self._map.zoom = (1.0, 1.0)
                         self._map.refresh_view_state()
+                        self._adjust_scrollbars()
                         self.canvas.Refresh()
+                        self.m_zoom.Value = 100
+
                     except IOError:
                         wx.LogError("Cannot open file '%s'." % pathname)
 
