@@ -1,7 +1,6 @@
 from rapidmaps.mapui.wxui.generated.rapidmap import MainFrame
 from rapidmaps.map.state import MapStateTranslator, MapState, MapStateType
-from wx import AutoBufferedPaintDC as abDC
-from wx import BG_STYLE_PAINT, Exit
+from wx import BG_STYLE_PAINT, Exit, AutoBufferedPaintDC as abDC
 
 from rapidmaps.map.shape import *
 from rapidmaps.map.selection import Selections
@@ -55,8 +54,12 @@ class RapidMapFrame(MainFrame):
             self.__edit_enabled(False)
             anyselected = False
             for shape in self.__shape_obj:
-                sel_pos = wxPoint(self._map.view.viewport.x + event.Position.x,
-                                  self._map.view.viewport.y + event.Position.y)
+
+                zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
+
+                sel_pos = wx.Point(self._map.zoomedview.x + (event.Position.x * zoom),
+                              self._map.zoomedview.y + (event.Position.y * zoom))
+
                 if shape.intersect_by(sel_pos):
                     self.__sel_shape = shape
                     anyselected = True
@@ -83,7 +86,10 @@ class RapidMapFrame(MainFrame):
             self.canvas.Refresh()
         elif self._mst.selection_is_moving:
             self._ms.set(MapStateType.SELECTION_IS_MOVING, True)
-            self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff])
+
+            zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
+
+            self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff * zoom])
             self.canvas.Refresh()
         else:
             self._ms.set(MapStateType.SELECTION_IS_MOVING, False)
@@ -105,10 +111,15 @@ class RapidMapFrame(MainFrame):
 
             if selected_area.width > 0 and selected_area.height > 0:
 
-                selected_area.x = self._map.view.viewport.x + selected_area.x
-                selected_area.y = self._map.view.viewport.y + selected_area.y
+                zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
+
+                selected_area.x = self._map.zoomedview.x + (selected_area.x * zoom)
+                selected_area.y = self._map.zoomedview.y + (selected_area.y * zoom)
+                selected_area.width *= zoom
+                selected_area.height *= zoom
 
                 for shape in self.__shape_obj:
+
                     if selected_area.Contains(shape.get_bbox()):
                         self._selections.add(shape)
                     elif self._mst.should_add_selection:
@@ -116,6 +127,7 @@ class RapidMapFrame(MainFrame):
                             self._selections.remove(shape)
                     else:
                         self._selections.remove(shape)
+
         if self.should_add_entity():
             self.__sel_shape = self.m_shapes.Selection
             new_obj = self.__shape_clz[self.__sel_shape]()
