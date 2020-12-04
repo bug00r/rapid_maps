@@ -132,8 +132,10 @@ class RapidMapFrame(MainFrame):
             self.__sel_shape = self.m_shapes.Selection
             new_obj = self.__shape_clz[self.__sel_shape]()
 
-            newpos = wx.Point(self._map.zoomedview.x + (event.Position.x * self._map.map_zoom_factor),
-                              self._map.zoomedview.y + (event.Position.y * self._map.map_zoom_factor))
+            zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
+
+            newpos = wx.Point(self._map.zoomedview.x + (event.Position.x * zoom),
+                              self._map.zoomedview.y + (event.Position.y * zoom))
 
             new_obj.set_pos(position=newpos)
 
