@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version 3.9.0 Nov 18 2020)
+## Python code generated with wxFormBuilder (version Oct 26 2018)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -186,6 +186,7 @@ class MainFrame ( wx.Frame ):
 		self.canvas.Bind( wx.EVT_LEFT_DOWN, self.canvasOnLeftDown )
 		self.canvas.Bind( wx.EVT_LEFT_UP, self.canvasOnLeftUp )
 		self.canvas.Bind( wx.EVT_MOTION, self.canvasOnMotion )
+		self.canvas.Bind( wx.EVT_MOUSEWHEEL, self.canvasOnMouseWheel )
 		self.canvas.Bind( wx.EVT_PAINT, self.canvasOnPaint )
 		self.canvas.Bind( wx.EVT_SIZE, self.canvasOnSize )
 		self.m_map_hscroll.Bind( wx.EVT_SCROLL, self.m_map_hscrollOnScroll )
@@ -250,6 +251,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def canvasOnMotion( self, event ):
+		event.Skip()
+
+	def canvasOnMouseWheel( self, event ):
 		event.Skip()
 
 	def canvasOnPaint( self, event ):

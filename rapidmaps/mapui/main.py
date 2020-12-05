@@ -89,6 +89,8 @@ class RapidMapFrame(MainFrame):
 
             zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
 
+            print(f"delta {self._mst.mouse_move_diff} zoom: {zoom} result { self._mst.mouse_move_diff * zoom }")
+
             self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff * zoom])
             self.canvas.Refresh()
         else:
@@ -344,13 +346,17 @@ class RapidMapFrame(MainFrame):
         self.m_rotation.SetValue(shape.get_angle())
         self.m_text_size.SetValue(shape.get_text_size())
 
-    def OnMapZoom(self, event):
+    def _do_zoom(self, zoom_value: int):
         if self._map.bg_image:
-            zoom_factor = float(event.Int) / 100.0
+            zoom_factor = float(zoom_value) / 100.0
             self._map.zoom = (zoom_factor, 1.0 / zoom_factor)
             self._map.refresh_view_state()
             self._adjust_scrollbars()
             self.canvas.Refresh()
+
+
+    def OnMapZoom(self, event):
+        self._do_zoom(event.Int)
 
     def m_map_hscrollOnScroll(self, event):
         self._map.view.viewport.x = event.Position
@@ -369,3 +375,13 @@ class RapidMapFrame(MainFrame):
     def m_map_vscrollOnScrollThumbRelease(self, event):
         self._map.refresh_view_state()
         self.canvas.Refresh()
+
+    def canvasOnMouseWheel(self, event):
+        if event.controlDown:
+            new_val = self.m_zoom.Value + ((event.WheelRotation/100) * 4)
+            if new_val > self.m_zoom.Max:
+                new_val = self.m_zoom.Max
+            elif new_val < self.m_zoom.Min:
+                new_val = self.m_zoom.Min
+            self.m_zoom.Value = new_val
+            self._do_zoom(self.m_zoom.Value)
