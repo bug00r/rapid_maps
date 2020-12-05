@@ -3,4 +3,4 @@
         self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width*scale_factor, self.__bg_image.Height*scale_factor)
         wx._core.wxAssertionError: C++ assertion "data" failed at ..\..\src\common\image.cpp(503) in wxImage::ResampleNearest(): unable to create image
 
-    Solution: using own scale and scrolling see TODO-Item-4test
+    Solution: using own scale and scrolling see TODO-Item-4
