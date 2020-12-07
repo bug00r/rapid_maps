@@ -76,8 +76,7 @@ class RapidMapFrame(MainFrame):
                     self.__set_edit_by(shape)
             if not self._mst.should_add_selection and not anyselected:
                 self._selections.clear()
-
-        self.canvas.Refresh()
+            self.canvas.Refresh()
         event.Skip()
 
     def canvasOnMotion(self, event):
@@ -88,8 +87,6 @@ class RapidMapFrame(MainFrame):
             self._ms.set(MapStateType.SELECTION_IS_MOVING, True)
 
             zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
-
-            print(f"delta {self._mst.mouse_move_diff} zoom: {zoom} result { self._mst.mouse_move_diff * zoom }")
 
             self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff * zoom])
             self.canvas.Refresh()
@@ -129,7 +126,7 @@ class RapidMapFrame(MainFrame):
                             self._selections.remove(shape)
                     else:
                         self._selections.remove(shape)
-
+                self.canvas.Refresh()
         if self.should_add_entity():
             self.__sel_shape = self.m_shapes.Selection
             new_obj = self.__shape_clz[self.__sel_shape]()
@@ -145,7 +142,7 @@ class RapidMapFrame(MainFrame):
             self.canvas.Refresh()
         else:
             self.__sel_shape = None
-        self.canvas.Refresh()
+
         event.Skip()
 
     def _canvas_set_key(self, event):
@@ -170,21 +167,6 @@ class RapidMapFrame(MainFrame):
         self._map.refresh_view_state()
 
         if self._map.bg_bitmap:
-
-            ## If scroll position + normalized screen width overflows on zoom we have to recalculate and refresh
-            scrolloverx = self._map.bg_bitmap.GetSize().width - (self._map.normalized.x + self._map.normalized.width)
-            scrolloverx = 0.0 if scrolloverx > 0 else scrolloverx
-
-            scrollovery = self._map.bg_bitmap.GetSize().height - (self._map.normalized.y + self._map.normalized.height)
-            scrollovery = 0.0 if scrollovery > 0 else scrollovery
-
-            self._map.view.viewport.x += scrolloverx
-            self._map.view.viewport.y += scrollovery
-            self._adjust_scrollbars()
-
-            if scrollovery != 0.0 or scrolloverx != 0.0:
-                self._map.refresh_view_state()
-            ###  ugly but it works, refacoring in the future ;)
 
             scalew = self.canvas.GetSize().width if self._map.should_scale_up[0] \
                 else self._map.normalized.width * self._map.map_zoom_factor
@@ -259,16 +241,14 @@ class RapidMapFrame(MainFrame):
                         pathname = fileDialog.GetPath()
                         self._map.bg_image = wx.Image(pathname, wx.BITMAP_TYPE_ANY)
                         self._map.bg_bitmap = self._map.bg_image.ConvertToBitmap()
-                        self._adjust_scrollbars()
                         self._map.view.vsize = self._map.bg_image.GetSize()
                         self._map.view.viewport.x = 0
                         self._map.view.viewport.y = 0
                         self._map.view.viewport.width = self.canvas.GetSize().width
                         self._map.view.viewport.height = self.canvas.GetSize().height
                         self._map.zoom = (1.0, 1.0)
-                        self._map.refresh_view_state()
-                        self._adjust_scrollbars()
                         self.canvas.Refresh()
+                        self._adjust_scrollbars()
                         self.m_zoom.Value = 100
 
                     except IOError:
@@ -293,7 +273,6 @@ class RapidMapFrame(MainFrame):
         self._map.view.rsize = event.Size
         self._map.view.viewport.width = event.Size.width
         self._map.view.viewport.height = event.Size.height
-        self._map.refresh_view_state()
         self._adjust_scrollbars()
 
     def OnClearMap(self, event):
@@ -350,30 +329,40 @@ class RapidMapFrame(MainFrame):
         if self._map.bg_image:
             zoom_factor = float(zoom_value) / 100.0
             self._map.zoom = (zoom_factor, 1.0 / zoom_factor)
+
             self._map.refresh_view_state()
-            self._adjust_scrollbars()
+
+            ## If scroll position + normalized screen width overflows on zoom we have to recalculate and refresh
+            scrolloverx = self._map.bg_bitmap.GetSize().width - (self._map.normalized.x + self._map.normalized.width)
+            scrolloverx = 0.0 if scrolloverx > 0 else scrolloverx
+
+            scrollovery = self._map.bg_bitmap.GetSize().height - (self._map.normalized.y + self._map.normalized.height)
+            scrollovery = 0.0 if scrollovery > 0 else scrollovery
+
+            self._map.view.viewport.x += scrolloverx
+            self._map.view.viewport.y += scrollovery
+
             self.canvas.Refresh()
+            self._adjust_scrollbars()
 
 
     def OnMapZoom(self, event):
         self._do_zoom(event.Int)
 
     def m_map_hscrollOnScroll(self, event):
+        # todo only repaint until realtim scroll is enabled(should be added)
         self._map.view.viewport.x = event.Position
-        self._map.refresh_view_state()
         self.canvas.Refresh()
 
     def m_map_hscrollOnScrollThumbRelease(self, event):
-        self._map.refresh_view_state()
         self.canvas.Refresh()
 
     def m_map_vscrollOnScroll(self, event):
+        #todo only repaint until realtim scroll is enabled(should be added)
         self._map.view.viewport.y = event.Position
-        self._map.refresh_view_state()
         self.canvas.Refresh()
 
     def m_map_vscrollOnScrollThumbRelease(self, event):
-        self._map.refresh_view_state()
         self.canvas.Refresh()
 
     def canvasOnMouseWheel(self, event):
