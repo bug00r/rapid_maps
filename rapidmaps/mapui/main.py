@@ -1,9 +1,9 @@
-from rapidmaps.mapui.wxui.generated.rapidmap import MainFrame
-from rapidmaps.map.state import MapStateTranslator, MapState, MapStateType
 from wx import BG_STYLE_PAINT, Exit, AutoBufferedPaintDC as abDC
 
+
+from rapidmaps.mapui.wxui.generated.rapidmap import MainFrame
+from rapidmaps.map.state import MapStateType
 from rapidmaps.map.shape import *
-from rapidmaps.map.selection import Selections
 from rapidmaps.map import RapidMap
 
 
@@ -17,24 +17,13 @@ class RapidMapFrame(MainFrame):
         super().__init__(None)
         self.canvas.SetBackgroundStyle(BG_STYLE_PAINT)
         self.__shape_clz = [Point, Quad, Circle, Triangle, CharImage]
-        self.__shape_obj = []
         self.__sel_shape = None
         self.__scaled_image = None
-        self._selections = Selections()
-        # new parts
-        self._map = RapidMap()
-        self._ms = MapState()
-        self._mst = MapStateTranslator(self._ms, self._selections)
-        self._ms.set(MapStateType.MOVING_MODE_UI, True)
-        self._ms.set(MapStateType.SELECTION_MODE_UI, False)
-        self._ms.set(MapStateType.ADDITION_MODE_UI, False)
-        self._ms.set(MapStateType.SELECTION_IS_MOVING, False)
-        self._ms.set(MapStateType.KB_CTRL, wx.wxEVT_KEY_UP)
-        self._ms.set(MapStateType.KB_SHIFT, wx.wxEVT_KEY_UP)
-        self._ms.set(MapStateType.KB_ALT, wx.wxEVT_KEY_UP)
-        self._ms.set(MapStateType.MOUSE_LEFT, wx.wxEVT_LEFT_UP)
-        self._ms.set(MapStateType.MOUSE_LEFT_POS, wxPoint(-1, -1))
-        self._ms.set(MapStateType.MOUSE_LEFT_RELEASE_POS, wxPoint(-1, -1))
+        self._map = RapidMap(self.canvas)
+        self.__shape_obj = self._map.map_objects
+        self._selections = self._map.selections
+        self._ms = self._map.mapstate
+        self._mst = self._map.mapstatetranslator
 
     def on_mode_change(self, event):
         # event.Skip()
@@ -162,62 +151,9 @@ class RapidMapFrame(MainFrame):
         self._canvas_set_key(event)
         event.Skip()
 
-    def _draw_background(self, dc):
-        if self._map.bg_bitmap:
-
-            scalew = self.canvas.GetSize().width if self._map.should_scale_up[0] \
-                else self._map.normalized.width * self._map.map_zoom_factor
-            scaleh = self.canvas.GetSize().height if self._map.should_scale_up[1] \
-                else self._map.normalized.height * self._map.map_zoom_factor
-
-            if not self._map.should_scale_up[0] or not self._map.should_scale_up[1]:
-                dc.SetBackground(Brush(Colour(0, 0, 0)))
-                dc.Clear()
-
-            subimg = self._map.bg_image.GetSubImage(self._map.normalized).Scale(scalew, scaleh)
-
-            dc.DrawBitmap(subimg.ConvertToBitmap(), 0, 0)
-        elif not self._map.bg_image:
-            dc.SetBackground(Brush(Colour(0, 0, 0)))
-            dc.Clear()
-            self._map.view.viewport.x = 0
-            self._map.view.viewport.y = 0
-            self._map.view.viewport.width = self.canvas.GetSize().width
-            self._map.view.viewport.height = self.canvas.GetSize().height
-
-    def _draw_objects(self, dc):
-        for shape in self.__shape_obj:
-            if shape.get_bbox().Intersects(self._map.zoomedview):
-                if self._map.object_zoom_factor > 0:
-                    temppos = shape.get_pos()
-                    tempsize = shape.get_size()
-                    zoom = self._map.object_zoom_factor if self._map.should_scale_up[0] else self._map.map_zoom_factor
-                    shape.set_pos(wx.Point((temppos.x - self._map.zoomedview.x) * zoom,
-                                           (temppos.y - self._map.zoomedview.y) * zoom))
-                    shape.set_size(wx.Size(tempsize.width * zoom,
-                                           tempsize.height * zoom))
-
-                    shape.draw_by_dc(dc)
-                    shape.set_pos(temppos)
-                    shape.set_size(tempsize)
-
-    def _draw_selection_outline(self, dc):
-        if self._mst.is_selection_area_active:
-            oldpen = dc.GetPen()
-            oldbrush = dc.GetBrush()
-            dc.SetPen(wx.Pen(GREEN, 2))
-            dc.SetBrush(wx.Brush(GREEN, wx.TRANSPARENT))
-            dc.DrawRectangle(self._mst.current_selected_area)
-            dc.SetPen(oldpen)
-            dc.SetBrush(oldbrush)
-
     def canvasOnPaint(self, event):
         dc = abDC(self.canvas)
-        self._map.refresh_view_state()
-        self._draw_background(dc)
-        self._draw_objects(dc)
-        self._draw_selection_outline(dc)
-
+        self._map.update(dc)
 
     def _adjust_scrollbars(self):
         if self._map.bg_image:
@@ -248,18 +184,8 @@ class RapidMapFrame(MainFrame):
                 else:
                     try:
                         pathname = fileDialog.GetPath()
-                        self._map.bg_image = wx.Image(pathname, wx.BITMAP_TYPE_ANY)
-                        self._map.bg_bitmap = self._map.bg_image.ConvertToBitmap()
-                        self._map.view.vsize = self._map.bg_image.GetSize()
-                        self._map.view.viewport.x = 0
-                        self._map.view.viewport.y = 0
-                        self._map.view.viewport.width = self.canvas.GetSize().width
-                        self._map.view.viewport.height = self.canvas.GetSize().height
-                        self._map.zoom = (1.0, 1.0)
-                        self.canvas.Refresh()
+                        self._map.set_background(wx.Image(pathname, wx.BITMAP_TYPE_ANY))
                         self._adjust_scrollbars()
-                        self.m_zoom.Value = 100
-
                     except IOError:
                         wx.LogError("Cannot open file '%s'." % pathname)
 
@@ -336,22 +262,7 @@ class RapidMapFrame(MainFrame):
 
     def _do_zoom(self, zoom_value: int):
         if self._map.bg_image:
-            zoom_factor = float(zoom_value) / 100.0
-            self._map.zoom = (zoom_factor, 1.0 / zoom_factor)
-
-            self._map.refresh_view_state()
-
-            ## If scroll position + normalized screen width overflows on zoom we have to recalculate and refresh
-            scrolloverx = self._map.bg_bitmap.GetSize().width - (self._map.normalized.x + self._map.normalized.width)
-            scrolloverx = 0.0 if scrolloverx > 0 else scrolloverx
-
-            scrollovery = self._map.bg_bitmap.GetSize().height - (self._map.normalized.y + self._map.normalized.height)
-            scrollovery = 0.0 if scrollovery > 0 else scrollovery
-
-            self._map.view.viewport.x += scrolloverx
-            self._map.view.viewport.y += scrollovery
-
-            self.canvas.Refresh()
+            self._map.do_zoom(zoom_value)
             self._adjust_scrollbars()
 
 

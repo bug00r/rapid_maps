@@ -84,7 +84,7 @@ class Shape(object):
         if self._selected:
             oldpen = dc.GetPen()
             oldbrush = dc.GetBrush()
-            dc.SetPen(wx.Pen(GREEN, 2))
+            dc.SetPen(wx.GREEN_PEN)
             dc.SetBrush(wx.Brush(GREEN, wx.TRANSPARENT))
             dc.DrawRoundedRectangle(self._pos.x, self._pos.y, self._size.width, self._size.height, 5)
             dc.SetPen(oldpen)
