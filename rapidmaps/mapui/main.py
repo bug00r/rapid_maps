@@ -162,10 +162,7 @@ class RapidMapFrame(MainFrame):
         self._canvas_set_key(event)
         event.Skip()
 
-    def canvasOnPaint(self, event):
-        dc = abDC(self.canvas)
-        self._map.refresh_view_state()
-
+    def _draw_background(self, dc):
         if self._map.bg_bitmap:
 
             scalew = self.canvas.GetSize().width if self._map.should_scale_up[0] \
@@ -187,6 +184,8 @@ class RapidMapFrame(MainFrame):
             self._map.view.viewport.y = 0
             self._map.view.viewport.width = self.canvas.GetSize().width
             self._map.view.viewport.height = self.canvas.GetSize().height
+
+    def _draw_objects(self, dc):
         for shape in self.__shape_obj:
             if shape.get_bbox().Intersects(self._map.zoomedview):
                 if self._map.object_zoom_factor > 0:
@@ -201,6 +200,8 @@ class RapidMapFrame(MainFrame):
                     shape.draw_by_dc(dc)
                     shape.set_pos(temppos)
                     shape.set_size(tempsize)
+
+    def _draw_selection_outline(self, dc):
         if self._mst.is_selection_area_active:
             oldpen = dc.GetPen()
             oldbrush = dc.GetBrush()
@@ -209,6 +210,14 @@ class RapidMapFrame(MainFrame):
             dc.DrawRectangle(self._mst.current_selected_area)
             dc.SetPen(oldpen)
             dc.SetBrush(oldbrush)
+
+    def canvasOnPaint(self, event):
+        dc = abDC(self.canvas)
+        self._map.refresh_view_state()
+        self._draw_background(dc)
+        self._draw_objects(dc)
+        self._draw_selection_outline(dc)
+
 
     def _adjust_scrollbars(self):
         if self._map.bg_image:
