@@ -1,6 +1,5 @@
 from wx import BG_STYLE_PAINT, Exit, AutoBufferedPaintDC as abDC
 
-
 from rapidmaps.mapui.wxui.generated.rapidmap import MainFrame
 from rapidmaps.map.state import MapStateType
 from rapidmaps.map.shape import *
@@ -16,9 +15,6 @@ class RapidMapFrame(MainFrame):
     def __init__(self):
         super().__init__(None)
         self.canvas.SetBackgroundStyle(BG_STYLE_PAINT)
-        self.__shape_clz = [Point, Quad, Circle, Triangle, CharImage]
-        self.__sel_shape = None
-        self.__scaled_image = None
         self._map = RapidMap(self.canvas)
         self.__shape_obj = self._map.map_objects
         self._selections = self._map.selections
@@ -65,8 +61,6 @@ class RapidMapFrame(MainFrame):
             self._map.area_selection_at(self._mst.current_selected_area)
         if self.should_add_entity():
             self._map.add_shape(self.m_shapes.Selection, event.Position.x, event.Position.y)
-        else:
-            self.__sel_shape = None
 
         event.Skip()
 
@@ -217,10 +211,6 @@ class RapidMapFrame(MainFrame):
 
     def canvasOnMouseWheel(self, event):
         if event.controlDown:
-            new_val = self.m_zoom.Value + ((event.WheelRotation/100) * 4)
-            if new_val > self.m_zoom.Max:
-                new_val = self.m_zoom.Max
-            elif new_val < self.m_zoom.Min:
-                new_val = self.m_zoom.Min
-            self.m_zoom.Value = new_val
+            new_val = self.m_zoom.Value + (event.WheelRotation/100)
+            self.m_zoom.Value = min(max(new_val, self.m_zoom.Min), self.m_zoom.Max)
             self._do_zoom(self.m_zoom.Value)
