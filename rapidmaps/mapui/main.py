@@ -53,10 +53,7 @@ class RapidMapFrame(MainFrame):
         elif self._mst.selection_is_moving:
             self._ms.set(MapStateType.SELECTION_IS_MOVING, True)
 
-            zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
-
-            self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff * zoom])
-            self.canvas.Refresh()
+            self._map.move_selected_shapes()
         else:
             self._ms.set(MapStateType.SELECTION_IS_MOVING, False)
 
@@ -95,16 +92,10 @@ class RapidMapFrame(MainFrame):
         self._map.update(dc)
 
     def _adjust_scrollbars(self):
-        if self._map.bg_image:
-            newvize = self._map.bg_image.GetSize()
-            realsize = self.canvas.GetSize()
-
-            zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
-
-            self.m_map_hscroll.SetScrollbar(self._map.view.viewport.x,
-                                            realsize.width * zoom, newvize.width, realsize.width, True)
-            self.m_map_vscroll.SetScrollbar(self._map.view.viewport.y,
-                                            realsize.height * zoom, newvize.height, realsize.height, True)
+        scroll = self._map.get_update_scrollbar_dimensions()
+        hsbar, vsbar = scroll.horizontal, scroll.vertical
+        self.m_map_hscroll.SetScrollbar(hsbar.pos, hsbar.thumb_size, hsbar.max_pos, hsbar.page_size, True)
+        self.m_map_vscroll.SetScrollbar(vsbar.pos, vsbar.thumb_size, vsbar.max_pos, vsbar.page_size, True)
 
     def should_add_entity(self):
         return self._ms.get(MapStateType.ADDITION_MODE_UI).value

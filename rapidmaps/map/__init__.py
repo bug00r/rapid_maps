@@ -38,6 +38,68 @@ class MapView(object):
         self._view = viewport
 
 
+class ScrollbarParameter(object):
+    def __init__(self):
+        self._pos = 0
+        self._thumbsize = 0
+        self._maxpos = 0
+        self._page_size = 0
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, pos):
+        self._pos = pos
+
+    @property
+    def thumb_size(self):
+        return self._thumbsize
+
+    @thumb_size.setter
+    def thumb_size(self, thumbsize):
+        self._thumbsize = thumbsize
+
+    @property
+    def max_pos(self):
+        return self._maxpos
+
+    @max_pos.setter
+    def max_pos(self, maxpos):
+        self._maxpos = maxpos
+
+    @property
+    def page_size(self):
+        return self._page_size
+
+    @page_size.setter
+    def page_size(self, page_size):
+        self._page_size = page_size
+
+
+class ScrollbarDimensions(object):
+    def __init__(self, horizontal=None, vertical=None):
+        self._vertical = vertical if vertical else ScrollbarParameter()
+        self._horizontal = horizontal if horizontal else ScrollbarParameter()
+
+    @property
+    def vertical(self):
+        return self._vertical
+
+    @property
+    def horizontal(self):
+        return self._horizontal
+
+    @vertical.setter
+    def vertical(self, vertical=None):
+        self._vertical = vertical if vertical else ScrollbarParameter()
+
+    @horizontal.setter
+    def horizontal(self, horizontal=None):
+        self._horizontal = horizontal if horizontal else ScrollbarParameter()
+
+
 class RapidMap(object):
 
     def __init__(self, canvas: wx.Panel):
@@ -68,6 +130,7 @@ class RapidMap(object):
         self._ms.set(MapStateType.MOUSE_LEFT, wx.wxEVT_LEFT_UP)
         self._ms.set(MapStateType.MOUSE_LEFT_POS, wx.Point(-1, -1))
         self._ms.set(MapStateType.MOUSE_LEFT_RELEASE_POS, wx.Point(-1, -1))
+        self._scrollbar = ScrollbarDimensions()
 
     @property
     def map_objects(self):
@@ -300,3 +363,35 @@ class RapidMap(object):
 
         self.__shape_obj.append(new_obj)
         self._canvas.Refresh()
+
+    def move_selected_shapes(self):
+        zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+        self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff * zoom])
+        self._canvas.Refresh()
+
+    def get_update_scrollbar_dimensions(self) -> ScrollbarDimensions:
+        self._scrollbar = ScrollbarDimensions()
+        if self._bg_image:
+            newvize = self._bg_image.GetSize()
+            realsize = self._canvas.GetSize()
+
+            zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+
+            self._scrollbar.horizontal.pos = self._view.viewport.x
+            self._scrollbar.horizontal.thumb_size = realsize.width * zoom
+            self._scrollbar.horizontal.max_pos = newvize.width
+            self._scrollbar.horizontal.page_size = realsize.width
+            self._scrollbar.vertical.pos = self._view.viewport.y
+            self._scrollbar.vertical.thumb_size = realsize.height * zoom
+            self._scrollbar.vertical.max_pos = newvize.height
+            self._scrollbar.vertical.page_size = realsize.height
+        else:
+            width, height = self._canvas.GetSize().width, self._canvas.GetSize().height
+            self._scrollbar.horizontal.max_pos = width
+            self._scrollbar.horizontal.thumb_size = width
+            self._scrollbar.horizontal.page_size = width
+            self._scrollbar.vertical.max_pos = height
+            self._scrollbar.vertical.thumb_size = height
+            self._scrollbar.vertical.page_size = height
+
+        return self._scrollbar
