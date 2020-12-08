@@ -131,7 +131,7 @@ class CharImage(Shape):
             self._bitmap = usedimg.ConvertToBitmap()
 
         font = dc.GetFont()
-        font.SetPointSize(self._text_size )
+        font.SetPointSize(self._text_size)
         dc.SetFont(font)
         txtw, txth = dc.GetTextExtent(self._name)
         dc.DrawRoundedRectangle(pos.x, pos.y - (txth+6), txtw+6, txth+5, 2)
@@ -166,8 +166,12 @@ class Circle(Shape):
         pos = self.get_scaled_pos()
         size = self.get_scaled_size()
         dc.DrawText(self._name, pos.x-size.x, pos.y-(size.y+15))
+        tBrush = dc.GetBrush()
         dc.SetBrush(Brush(self._color))
         dc.DrawCircle(pos, size.x)
+        dc.SetBrush(tBrush)
+
+        self._draw_outline(dc)
 
     def intersect_by(self, point: wxPoint):
         pos = self.get_scaled_pos()
@@ -184,8 +188,12 @@ class Quad(Shape):
         pos = self.get_scaled_pos()
         size = self.get_scaled_size()
         dc.DrawText(self._name, pos.x, pos.y - 20)
+        tBrush = dc.GetBrush()
         dc.SetBrush(Brush(self._color))
         dc.DrawRectangle(pt=pos, sz=size)
+        dc.SetBrush(tBrush)
+
+        self._draw_outline(dc)
 
     def intersect_by(self, point: wxPoint):
         pos = self.get_scaled_pos()

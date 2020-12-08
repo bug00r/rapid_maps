@@ -126,6 +126,12 @@ class MapStateTranslator(object):
                 and self._ms.get(MapStateType.MOUSE_LEFT).value == wx.wxEVT_LEFT_DOWN
 
     @property
+    def was_selection_area_active(self):
+        return not self.is_moving_mode_active and self.is_selection_mode_active \
+               and self._ms.get(MapStateType.MOUSE_LEFT).value == wx.wxEVT_LEFT_UP \
+               and self._ms.get(MapStateType.MOUSE_LEFT).last_value == wx.wxEVT_LEFT_DOWN
+
+    @property
     def is_addition_mode_active(self):
         return self._ms.get(MapStateType.ADDITION_MODE_UI).value or \
                 self._ms.get(MapStateType.KB_ALT).value == wx.wxEVT_KEY_DOWN

@@ -40,32 +40,10 @@ class RapidMapFrame(MainFrame):
         self._ms.set(MapStateType.MOUSE_LEFT_POS, event.Position)
 
         if not self._mst.is_moving_mode_active and self._mst.is_selection_mode_active:
-            self.__edit_enabled(False)
-            anyselected = False
-            for shape in self.__shape_obj:
-
-                zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
-
-                sel_pos = wx.Point(self._map.zoomedview.x + (event.Position.x * zoom),
-                              self._map.zoomedview.y + (event.Position.y * zoom))
-
-                if shape.intersect_by(sel_pos):
-                    self.__sel_shape = shape
-                    anyselected = True
-                    if self._mst.should_add_selection:
-                        if self._selections.contains(shape):
-                            self._selections.remove(shape)
-                        else:
-                            self._selections.add(shape)
-                    else:
-                        self._selections.clear()
-                        self._selections.add(shape)
-                if not self._selections.is_empty():
-                    self.__edit_enabled(True)
-                    self.__set_edit_by(shape)
-            if not self._mst.should_add_selection and not anyselected:
-                self._selections.clear()
-            self.canvas.Refresh()
+            foundShape = self._map.single_select_at(event.Position.x, event.Position.y)
+            if foundShape:
+                self.__edit_enabled(True)
+                self.__set_edit_by(foundShape)
         event.Skip()
 
     def canvasOnMotion(self, event):
@@ -83,52 +61,13 @@ class RapidMapFrame(MainFrame):
             self._ms.set(MapStateType.SELECTION_IS_MOVING, False)
 
     def canvasOnLeftUp(self, event):
-        was_area_sel = self._mst.is_selection_area_active
-        selected_area = self._mst.current_selected_area
-
         self._ms.set(MapStateType.MOUSE_LEFT, event.EventType)
         self._ms.set(MapStateType.MOUSE_LEFT_RELEASE_POS, event.Position)
 
-        if was_area_sel:
-            if selected_area.width < 0:
-                selected_area.x = selected_area.x + selected_area.width
-                selected_area.width = abs(selected_area.width)
-            if selected_area.height < 0:
-                selected_area.y = selected_area.y + selected_area.height
-                selected_area.height = abs(selected_area.height)
-
-            if selected_area.width > 0 and selected_area.height > 0:
-
-                zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
-
-                selected_area.x = self._map.zoomedview.x + (selected_area.x * zoom)
-                selected_area.y = self._map.zoomedview.y + (selected_area.y * zoom)
-                selected_area.width *= zoom
-                selected_area.height *= zoom
-
-                for shape in self.__shape_obj:
-
-                    if selected_area.Contains(shape.get_bbox()):
-                        self._selections.add(shape)
-                    elif self._mst.should_add_selection:
-                        if not self._selections.contains(shape):
-                            self._selections.remove(shape)
-                    else:
-                        self._selections.remove(shape)
-                self.canvas.Refresh()
+        if self._mst.was_selection_area_active:
+            self._map.area_selection_at(self._mst.current_selected_area)
         if self.should_add_entity():
-            self.__sel_shape = self.m_shapes.Selection
-            new_obj = self.__shape_clz[self.__sel_shape]()
-
-            zoom = self._map.map_zoom_factor if self._map.should_scale_up[0] else self._map.object_zoom_factor
-
-            newpos = wx.Point(self._map.zoomedview.x + (event.Position.x * zoom),
-                              self._map.zoomedview.y + (event.Position.y * zoom))
-
-            new_obj.set_pos(position=newpos)
-
-            self.__shape_obj.append(new_obj)
-            self.canvas.Refresh()
+            self._map.add_shape(self.m_shapes.Selection, event.Position.x, event.Position.y)
         else:
             self.__sel_shape = None
 

@@ -1,7 +1,10 @@
+from typing import Union
+
 import wx
 
 from rapidmaps.map.selection import Selections
 from rapidmaps.map.state import MapStateTranslator, MapState, MapStateType
+from rapidmaps.map.shape import *
 
 
 class MapView(object):
@@ -38,7 +41,9 @@ class MapView(object):
 class RapidMap(object):
 
     def __init__(self, canvas: wx.Panel):
+        self.__shape_clz = [Point, Quad, Circle, Triangle, CharImage]
         self._selections = Selections()
+        self.__sel_shape = None
         # new parts
         self._ms = MapState()
         self._mst = MapStateTranslator(self._ms, self._selections)
@@ -226,3 +231,72 @@ class RapidMap(object):
         self._draw_background(dc)
         self._draw_objects(dc)
         self._draw_selection_outline(dc)
+
+    def single_select_at(self, x: int, y: int) -> Union[Shape, None]:
+        anyselected = False
+        for shape in self.__shape_obj:
+
+            zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+
+            sel_pos = wx.Point(self._zoomedview.x + (x * zoom), self._zoomedview.y + (y * zoom))
+
+            if shape.intersect_by(sel_pos):
+                self.__sel_shape = shape
+                anyselected = True
+                if self._mst.should_add_selection:
+                    if self._selections.contains(shape):
+                        self._selections.remove(shape)
+                    else:
+                        self._selections.add(shape)
+                else:
+                    self._selections.clear()
+                    self._selections.add(shape)
+            #if not self._selections.is_empty():
+                #self.__edit_enabled(True)
+                #self.__set_edit_by(shape)
+        if not self._mst.should_add_selection and not anyselected:
+            self._selections.clear()
+        self._canvas.Refresh()
+        return self.__sel_shape
+
+    def area_selection_at(self, selected_area: wx.Rect):
+
+        if selected_area.width < 0:
+            selected_area.x = selected_area.x + selected_area.width
+            selected_area.width = abs(selected_area.width)
+        if selected_area.height < 0:
+            selected_area.y = selected_area.y + selected_area.height
+            selected_area.height = abs(selected_area.height)
+
+        if selected_area.width > 0 and selected_area.height > 0:
+
+            zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+
+            selected_area.x = self._zoomedview.x + (selected_area.x * zoom)
+            selected_area.y = self._zoomedview.y + (selected_area.y * zoom)
+            selected_area.width *= zoom
+            selected_area.height *= zoom
+
+            for shape in self.__shape_obj:
+
+                if selected_area.Contains(shape.get_bbox()):
+                    self._selections.add(shape)
+                elif self._mst.should_add_selection:
+                    if not self._selections.contains(shape):
+                        self._selections.remove(shape)
+                else:
+                    self._selections.remove(shape)
+
+            self._canvas.Refresh()
+
+    def add_shape(self, shape_type: int, pos_x: int, pos_y: int):
+        new_obj = self.__shape_clz[shape_type]()
+
+        zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+
+        newpos = wx.Point(self._zoomedview.x + (pos_x * zoom), self._zoomedview.y + (pos_y * zoom))
+
+        new_obj.set_pos(position=newpos)
+
+        self.__shape_obj.append(new_obj)
+        self._canvas.Refresh()
