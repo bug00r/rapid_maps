@@ -205,7 +205,7 @@ class RapidMap(object):
                                      self._zoomedview.width),
                                  min(self._bg_image.GetSize().height if self._bg_bitmap else self._view.rsize.height,
                                      self._zoomedview.height))
-        self._should_scale_up = (self._zoomedview.width == self._normalized.width, self._zoomedview.height == self._normalized.height)
+        self._should_scale_up = (self._zoomedview.width < self._canvas.GetSize().width, self._zoomedview.height < self._canvas.GetSize().height)
         self._object_zoom_factor = self._zoom[0] if self._should_scale_up[0] else self._zoom[1]
         self._map_zoom_factor = self._zoom[1] if self._should_scale_up[0] else self._zoom[0]
 
@@ -245,6 +245,7 @@ class RapidMap(object):
 
             scalew = self._canvas.GetSize().width if self._should_scale_up[0] \
                 else self._normalized.width * self._map_zoom_factor
+
             scaleh = self._canvas.GetSize().height if self._should_scale_up[1] \
                 else self._normalized.height * self._map_zoom_factor
 
