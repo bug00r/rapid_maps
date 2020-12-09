@@ -129,9 +129,7 @@ class RapidMapFrame(MainFrame):
             Exit()
 
     def canvasOnSize(self, event):
-        self._map.view.rsize = event.Size
-        self._map.view.viewport.width = event.Size.width
-        self._map.view.viewport.height = event.Size.height
+        self._map.do_resize_viewport(event.Size)
         self._adjust_scrollbars()
 
     def OnClearMap(self, event):
@@ -198,15 +196,9 @@ class RapidMapFrame(MainFrame):
         self._map.view.viewport.x = event.Position
         self.canvas.Refresh()
 
-    def m_map_hscrollOnScrollThumbRelease(self, event):
-        self.canvas.Refresh()
-
     def m_map_vscrollOnScroll(self, event):
         #todo only repaint until realtim scroll is enabled(should be added)
         self._map.view.viewport.y = event.Position
-        self.canvas.Refresh()
-
-    def m_map_vscrollOnScrollThumbRelease(self, event):
         self.canvas.Refresh()
 
     def canvasOnMouseWheel(self, event):

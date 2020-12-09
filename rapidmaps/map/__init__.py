@@ -196,16 +196,17 @@ class RapidMap(object):
     def zoom(self, zoom: tuple):
         self._zoom = zoom
 
-    def refresh_view_state(self):
+    def _refresh_view_state(self):
         self._zoomedview = wx.Rect(self._view.viewport) 
         self._zoomedview.width *= self._zoom[1]
         self._zoomedview.height *= self._zoom[1]
-        self._normalized = wx.Rect(self._view.viewport.x, self._view.viewport.y,
+        self._normalized = wx.Rect(self._zoomedview.x, self._zoomedview.y,
                                  min(self._bg_image.GetSize().width if self._bg_bitmap else self._view.rsize.width,
                                      self._zoomedview.width),
                                  min(self._bg_image.GetSize().height if self._bg_bitmap else self._view.rsize.height,
                                      self._zoomedview.height))
-        self._should_scale_up = (self._zoomedview.width < self._canvas.GetSize().width, self._zoomedview.height < self._canvas.GetSize().height)
+        self._should_scale_up = (self._zoomedview.width < self._canvas.GetSize().width,
+                                 self._zoomedview.height < self._canvas.GetSize().height)
         self._object_zoom_factor = self._zoom[0] if self._should_scale_up[0] else self._zoom[1]
         self._map_zoom_factor = self._zoom[1] if self._should_scale_up[0] else self._zoom[0]
 
@@ -221,24 +222,34 @@ class RapidMap(object):
             self._zoom = (1.0, 1.0)
             self._canvas.Refresh()
 
+    def _realign_viewport_on_overflow(self):
+        ## If scroll position + normalized screen width overflows on zoom we have to recalculate and refresh
+        scrolloverx = self._bg_bitmap.GetSize().width - (self._normalized.x + self._normalized.width)
+        scrolloverx = 0.0 if scrolloverx > 0 else scrolloverx
+
+        scrollovery = self._bg_bitmap.GetSize().height - (self._normalized.y + self._normalized.height)
+        scrollovery = 0.0 if scrollovery > 0 else scrollovery
+
+        self._view.viewport.x += scrolloverx
+        self._view.viewport.y += scrollovery
+
     def do_zoom(self, zoom_value: int):
         if self._bg_image:
             zoom_factor = float(zoom_value) / 100.0
             self._zoom = (zoom_factor, 1.0 / zoom_factor)
 
-            self.refresh_view_state()
+            self._refresh_view_state()
 
-            ## If scroll position + normalized screen width overflows on zoom we have to recalculate and refresh
-            scrolloverx = self._bg_bitmap.GetSize().width - (self._normalized.x + self._normalized.width)
-            scrolloverx = 0.0 if scrolloverx > 0 else scrolloverx
-
-            scrollovery = self._bg_bitmap.GetSize().height - (self._normalized.y + self._normalized.height)
-            scrollovery = 0.0 if scrollovery > 0 else scrollovery
-
-            self._view.viewport.x += scrolloverx
-            self._view.viewport.y += scrollovery
+            self._realign_viewport_on_overflow()
 
             self._canvas.Refresh()
+
+    def do_resize_viewport(self, newsize: wx.Size):
+        self._view.rsize = newsize
+        self._view.viewport.width = newsize.width
+        self._view.viewport.height = newsize.height
+        self._refresh_view_state()
+        self._realign_viewport_on_overflow()
 
     def _draw_background(self, dc):
         if self._bg_bitmap:
@@ -253,7 +264,8 @@ class RapidMap(object):
                 dc.SetBackground(wx.BLACK_BRUSH)
                 dc.Clear()
 
-            subimg = self._bg_image.GetSubImage(self._normalized).Scale(scalew, scaleh)
+            subimg = self._bg_image.GetSubImage(self._normalized)
+            subimg.Rescale(scalew, scaleh)
 
             dc.DrawBitmap(subimg.ConvertToBitmap(), 0, 0)
         elif not self._bg_image:
@@ -291,7 +303,7 @@ class RapidMap(object):
             dc.SetBrush(oldbrush)
 
     def update(self, dc: wx.DC):
-        self.refresh_view_state()
+        self._refresh_view_state()
         self._draw_background(dc)
         self._draw_objects(dc)
         self._draw_selection_outline(dc)
