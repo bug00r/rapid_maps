@@ -264,8 +264,7 @@ class RapidMap(object):
                 dc.SetBackground(wx.BLACK_BRUSH)
                 dc.Clear()
 
-            subimg = self._bg_image.GetSubImage(self._normalized)
-            subimg.Rescale(scalew, scaleh)
+            subimg = self._bg_image.GetSubImage(self._normalized).Scale(scalew, scaleh)
 
             dc.DrawBitmap(subimg.ConvertToBitmap(), 0, 0)
         elif not self._bg_image:
