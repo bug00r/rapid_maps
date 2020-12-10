@@ -154,7 +154,8 @@ class ImageShape(Shape):
             rotimg = None
 
             if self._size != self._bitmap.GetSize():
-                self._image = self._orig_image.Scale(self._size.width, self._size.height)
+                self._image = self._orig_image.Scale(1 if self._size.width < 1 else self._size.width,
+                                                     1 if self._size.height < 1 else self._size.height)
                 self._angle_changed = True
                 imagechanged = True
 
@@ -194,27 +195,22 @@ class CharImage(ImageShape):
 class ImageCircle(ImageShape):
     def __init__(self):
         super().__init__()
+        self._size = wx.Size(23, 23)
         self._name = "ImageCircle"
         self._create_circle()
         self._changed = False
 
-    def set_color(self, color: Colour):
-        super().set_color(color)
-        self._changed = True
-
     def _create_circle(self):
-        self._size = wx.Size(23, 23)
-        bitmap = wx.Bitmap.FromRGBA(self._size.width, self._size.height)
+        bitmap = wx.Bitmap.FromRGBA(1 if self._size.width < 1 else self._size.width,
+                                    1 if self._size.height < 1 else self._size.height)
         dc = wx.MemoryDC(bitmap)
         dc.SetBrush(Brush(super().get_color()))
-        dc.DrawCircle(self._pos + (self._size*0.5) - wx.Point(1,1), (self._size.width*0.5)-1)
-
+        dc.DrawCircle((wx.Point() + self._size*0.5) - wx.Point(1,1), (self._size.width*0.5)-1)
+        self._angle_changed = True
         self.set_image(bitmap.ConvertToImage())
 
     def draw_by_dc(self, dc: Any):
-        if self._changed:
-            self._create_circle()
-            self._changed = False
+        self._create_circle()
         super().draw_by_dc(dc)
 
 
@@ -223,24 +219,17 @@ class ImageQuad(ImageShape):
         super().__init__()
         self._name = "ImageQuad"
         self._create_quad()
-        self._changed = False
-
-    def set_color(self, color: Colour):
-        super().set_color(color)
-        self._changed = True
 
     def _create_quad(self):
-        bitmap = wx.Bitmap.FromRGBA(self._size.width, self._size.height)
+        bitmap = wx.Bitmap.FromRGBA(1 if self._size.width < 1 else self._size.width,
+                                    1 if self._size.height < 1 else self._size.height)
         dc = wx.MemoryDC(bitmap)
-        print(f"brush draw color {self._color}")
-        dc.SetBrush(Brush(super().get_color(), wx.BRUSHSTYLE_SOLID))
-        dc.DrawRectangle(pt=self._pos, sz=self._size)
-
-        super().set_image(bitmap.ConvertToImage())
+        dc.SetBrush(Brush(super().get_color()))
+        dc.DrawRectangle(pt=wx.Point(), sz=self._size)
+        self._angle_changed = True
+        self.set_image(bitmap.ConvertToImage())
 
     def draw_by_dc(self, dc: Any):
-        if self._changed:
-            self._create_quad()
-            self._changed = False
+        self._create_quad()
         super().draw_by_dc(dc)
 
