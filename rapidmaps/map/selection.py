@@ -31,9 +31,9 @@ class Selections(object):
             action(shape, *parameter)
 
     def action_on(self, action: str, parameter: list):
-        if hasattr(Shape, action) and callable(getattr(Shape, action)):
-            for ids, shape in self._shapes.items():
-                getattr(Shape, action)(shape, *parameter)
+        for ids, shape in self._shapes.items():
+            if hasattr(shape.__class__, action) and callable(getattr(shape.__class__, action)):
+                getattr(shape.__class__, action)(shape, *parameter)
 
     def intersect_any(self, point: wxPoint) -> bool:
         for ids, shape in self._shapes.items():

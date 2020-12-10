@@ -39,17 +39,6 @@ class Shape(object):
     def get_text_size(self):
         return self._text_size
 
-    def scale(self, scale):
-        self._scale = scale
-        self.scale_pos(self._scale)
-        self.scale_size(self._scale)
-
-    def scale_pos(self, scale):
-        self._pos = wxPoint(self._pos.x * scale, self._pos.y * scale)
-
-    def scale_size(self, scale):
-        self._size = Size(self._size.x * scale, self._size.y * scale)
-
     def get_color(self) -> Colour:
         return self._color
 
@@ -93,57 +82,43 @@ class Shape(object):
     def intersect_by(self, point: wxPoint):
         pass
 
-    def get_scaled_pos(self) -> wxPoint:
-        return self._pos
 
-    def get_scaled_size(self) -> Size:
-        return self._size
-
-
-class CharImage(Shape):
+class Circle(Shape):
     def __init__(self):
         super().__init__()
-        self._name = "Char"
-        self._path = "./../test/examplemaps/woman.png"
-        self._orig_image = wx.Image(self._path, wx.BITMAP_TYPE_ANY)
-        self._image = self._orig_image.Copy()
-        self._bitmap = self._image.ConvertToBitmap()
-        self._size = self._bitmap.GetSize()
+        self._name = "Circle"
 
     def draw_by_dc(self, dc: Any):
-        pos = self.get_scaled_pos()
-        size = self.get_scaled_size()
-        imagechanged = False
-        rotimg = None
-
-        if size != self._bitmap.GetSize():
-            self._image = self._orig_image.Scale(size.width, size.height)
-            self._angle_changed = True
-            imagechanged = True
-
-        if self._angle_changed:
-            rotimg = self._image.Rotate(self._angle * 0.017453293, wxPoint(size.x * 0.5, size.y * 0.5))
-            self._angle_changed = False
-            imagechanged = True
-
-        if imagechanged:
-            usedimg = rotimg if rotimg else self._image
-            self._bitmap = usedimg.ConvertToBitmap()
-
-        font = dc.GetFont()
-        font.SetPointSize(self._text_size)
-        dc.SetFont(font)
-        txtw, txth = dc.GetTextExtent(self._name)
-        dc.DrawRoundedRectangle(pos.x, pos.y - (txth+6), txtw+6, txth+5, 2)
-        dc.DrawText(self._name, pos.x+3, pos.y - txth-2)
-        dc.DrawBitmap(self._bitmap, pos.x, pos.y)
+        dc.DrawText(self._name, self._pos.x - self._size.x, self._pos.y - (self._size.y+15))
+        tBrush = dc.GetBrush()
+        dc.SetBrush(Brush(self._color))
+        dc.DrawCircle(self._pos, self._size.x)
+        dc.SetBrush(tBrush)
 
         self._draw_outline(dc)
 
     def intersect_by(self, point: wxPoint):
-        pos = self.get_scaled_pos()
-        size = self.get_scaled_size()
-        return pos.x <= point.x <= (pos.x + size.x) and pos.y <= point.y <= (pos.y + size.y)
+        return (self._pos.x - self._size.x) <= point.x <= (self._pos.x + self._size.x) and \
+               (self._pos.y - self._size.y) <= point.y <= (self._pos.y + self._size.y)
+
+
+class Quad(Shape):
+    def __init__(self):
+        super().__init__()
+        self._name = "Quadrat"
+
+    def draw_by_dc(self, dc: Any):
+        dc.DrawText(self._name, self._pos.x, self._pos.y - 20)
+        tBrush = dc.GetBrush()
+        dc.SetBrush(Brush(self._color))
+        dc.DrawRectangle(pt=self._pos, sz=self._size)
+        dc.SetBrush(tBrush)
+
+        self._draw_outline(dc)
+
+    def intersect_by(self, point: wxPoint):
+        return self._pos.x <= point.x <= (self._pos.x + self._size.x) and \
+               self._pos.y <= point.y <= (self._pos.y + self._size.y)
 
 
 class Point(Shape):
@@ -157,57 +132,115 @@ class Point(Shape):
         return self._pos == point
 
 
-class Circle(Shape):
-    def __init__(self):
+class ImageShape(Shape):
+
+    def __init__(self, image: wx.Image = None):
         super().__init__()
-        self._name = "Circle"
+        self._orig_image = image
+        self._image = image
+        self._bitmap = None
+
+    def set_image(self, image: wx.Image):
+        if not image or not isinstance(image, wx.Image):
+            raise ValueError('image should and wx.Image and not None')
+        self._orig_image = image
+        self._image = self._orig_image.Copy()
+        self._bitmap = self._image.ConvertToBitmap()
+        self._size = self._bitmap.GetSize()
 
     def draw_by_dc(self, dc: Any):
-        pos = self.get_scaled_pos()
-        size = self.get_scaled_size()
-        dc.DrawText(self._name, pos.x-size.x, pos.y-(size.y+15))
-        tBrush = dc.GetBrush()
-        dc.SetBrush(Brush(self._color))
-        dc.DrawCircle(pos, size.x)
-        dc.SetBrush(tBrush)
+        if self._bitmap:
+            imagechanged = False
+            rotimg = None
 
-        self._draw_outline(dc)
+            if self._size != self._bitmap.GetSize():
+                self._image = self._orig_image.Scale(self._size.width, self._size.height)
+                self._angle_changed = True
+                imagechanged = True
+
+            if self._angle_changed:
+                rotimg = self._image.Rotate(self._angle * 0.017453293, \
+                                            wxPoint(self._size.x * 0.5, self._size.y * 0.5))
+                self._angle_changed = False
+                imagechanged = True
+
+            if imagechanged:
+                usedimg = rotimg if rotimg else self._image
+                self._bitmap = usedimg.ConvertToBitmap()
+                self._size = self._bitmap.GetSize()
+
+            font = dc.GetFont()
+            font.SetPointSize(self._text_size)
+            dc.SetFont(font)
+            txtw, txth = dc.GetTextExtent(self._name)
+            dc.DrawRoundedRectangle(self._pos.x, self._pos.y - (txth+6), txtw+6, txth+5, 2)
+            dc.DrawText(self._name, self._pos.x+3, self._pos.y - txth-2)
+            dc.DrawBitmap(self._bitmap, self._pos.x, self._pos.y)
+
+            self._draw_outline(dc)
 
     def intersect_by(self, point: wxPoint):
-        pos = self.get_scaled_pos()
-        size = self.get_scaled_size()
-        return (pos.x-size.x) <= point.x <= (pos.x + size.x) and (pos.y-size.y) <= point.y <= (pos.y + size.y)
+        return self._pos.x <= point.x <= (self._pos.x + self._size.width) and \
+               self._pos.y <= point.y <= (self._pos.y + self._size.height)
 
 
-class Quad(Shape):
+class CharImage(ImageShape):
     def __init__(self):
         super().__init__()
-        self._name = "Quadrat"
-
-    def draw_by_dc(self, dc: Any):
-        pos = self.get_scaled_pos()
-        size = self.get_scaled_size()
-        dc.DrawText(self._name, pos.x, pos.y - 20)
-        tBrush = dc.GetBrush()
-        dc.SetBrush(Brush(self._color))
-        dc.DrawRectangle(pt=pos, sz=size)
-        dc.SetBrush(tBrush)
-
-        self._draw_outline(dc)
-
-    def intersect_by(self, point: wxPoint):
-        pos = self.get_scaled_pos()
-        size = self.get_scaled_size()
-        return pos.x <= point.x <= (pos.x + size.x) and pos.y <= point.y <= (pos.y + size.y)
+        self._name = "Char"
+        self.set_image(wx.Image("./../test/examplemaps/woman.png", wx.BITMAP_TYPE_ANY))
 
 
-class Triangle(Shape):
+class ImageCircle(ImageShape):
     def __init__(self):
         super().__init__()
-        self._name = "Triangle"
+        self._name = "ImageCircle"
+        self._create_circle()
+        self._changed = False
+
+    def set_color(self, color: Colour):
+        super().set_color(color)
+        self._changed = True
+
+    def _create_circle(self):
+        self._size = wx.Size(23, 23)
+        bitmap = wx.Bitmap.FromRGBA(self._size.width, self._size.height)
+        dc = wx.MemoryDC(bitmap)
+        dc.SetBrush(Brush(super().get_color()))
+        dc.DrawCircle(self._pos + (self._size*0.5) - wx.Point(1,1), (self._size.width*0.5)-1)
+
+        self.set_image(bitmap.ConvertToImage())
 
     def draw_by_dc(self, dc: Any):
-        print(f"Triangle: {self._pos}")
+        if self._changed:
+            self._create_circle()
+            self._changed = False
+        super().draw_by_dc(dc)
 
-    def intersect_by(self, point: wxPoint):
-        return self._pos.x <= point.x <= (self._pos.x + 20) and self._pos.y <= point.y <= (self._pos.y + 20)
+
+class ImageQuad(ImageShape):
+    def __init__(self):
+        super().__init__()
+        self._name = "ImageQuad"
+        self._create_quad()
+        self._changed = False
+
+    def set_color(self, color: Colour):
+        super().set_color(color)
+        self._changed = True
+
+    def _create_quad(self):
+        bitmap = wx.Bitmap.FromRGBA(self._size.width, self._size.height)
+        dc = wx.MemoryDC(bitmap)
+        print(f"brush draw color {self._color}")
+        dc.SetBrush(Brush(super().get_color(), wx.BRUSHSTYLE_SOLID))
+        dc.DrawRectangle(pt=self._pos, sz=self._size)
+
+        super().set_image(bitmap.ConvertToImage())
+
+    def draw_by_dc(self, dc: Any):
+        if self._changed:
+            self._create_quad()
+            self._changed = False
+        super().draw_by_dc(dc)
+

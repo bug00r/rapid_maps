@@ -103,7 +103,7 @@ class ScrollbarDimensions(object):
 class RapidMap(object):
 
     def __init__(self, canvas: wx.Panel):
-        self.__shape_clz = [Point, Quad, Circle, Triangle, CharImage]
+        self.__shape_clz = [Point, Quad, Circle, CharImage, ImageQuad, ImageCircle]
         self._selections = Selections()
         self.__sel_shape = None
         # new parts

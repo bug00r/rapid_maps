@@ -54,7 +54,7 @@ class MainFrame ( wx.Frame ):
 		self.m_actions.SetSelection( 0 )
 		bSizer31.Add( self.m_actions, 0, wx.ALL|wx.EXPAND, 5 )
 
-		m_shapesChoices = [ u"Point", u"Quad", u"Circle", u"Triangle", u"Woman" ]
+		m_shapesChoices = [ u"Point", u"Quad", u"Circle", u"Woman", u"ImageQuad", u"ImageCircle" ]
 		self.m_shapes = wx.RadioBox( self.m_panel3, wx.ID_ANY, u"Shapes", wx.DefaultPosition, wx.DefaultSize, m_shapesChoices, 1, wx.RA_SPECIFY_COLS )
 		self.m_shapes.SetSelection( 0 )
 		self.m_shapes.Enable( False )

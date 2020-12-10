@@ -73,8 +73,9 @@
 											<item>Point</item>
 											<item>Quad</item>
 											<item>Circle</item>
-											<item>Triangle</item>
 											<item>Woman</item>
+											<item>ImageQuad</item>
+											<item>ImageCircle</item>
 										</content>
 										<dimension>1</dimension>
 									</object>
