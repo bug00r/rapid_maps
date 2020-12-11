@@ -160,7 +160,7 @@ class ImageShape(Shape):
                 imagechanged = True
 
             if self._angle_changed:
-                rotimg = self._image.Rotate(self._angle * 0.017453293, \
+                rotimg = self._image.Rotate(self._angle * 0.017453293,
                                             wxPoint(self._size.x * 0.5, self._size.y * 0.5))
                 self._angle_changed = False
                 imagechanged = True

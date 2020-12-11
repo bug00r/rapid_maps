@@ -1,3 +1,8 @@
+NEW:
+    - Selection on rotated Images does not respect new rotated size but the old rescaled size
+
+
+FIXED:
 1. Scaling error in c++ Image
         File "E:\dev\projects\github\python\projects\rapid_maps\rapidmaps\mapui\main.py", line 437, in OnMapZoom
         self.__scaled_image = self.__bg_image.Scale(self.__bg_image.Width*scale_factor, self.__bg_image.Height*scale_factor)

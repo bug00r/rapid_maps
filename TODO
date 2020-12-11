@@ -1,3 +1,10 @@
+NEW:
+    - refactor map Algorithms and decrease redundancy
+
+
+
+
+DONE:
 1. adding statemachine
 2. improve selection mechanism(statemachine)
 3. improve selection based(statemachine)
