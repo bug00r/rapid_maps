@@ -1,0 +1,82 @@
+REF-1: Refactoring zoom and scale structure
+
+    MAIN_FUNCTION:
+     def _refresh_view_state(self):
+        self._zoomedview = wx.Rect(self._view.viewport)
+        self._zoomedview.width *= self._zoom.reciprocal
+        self._zoomedview.height *= self._zoom.reciprocal
+        self._normalized = wx.Rect(self._zoomedview.x, self._zoomedview.y,
+                                 min(self._bg_image.GetSize().width if self._bg_bitmap else self._view.rsize.width,
+                                     self._zoomedview.width),
+                                 min(self._bg_image.GetSize().height if self._bg_bitmap else self._view.rsize.height,
+                                     self._zoomedview.height))
+
+        # zoomed viewport is smaller than drawing plate
+        self._should_scale_up = (self._zoomedview.width < self._canvas.GetSize().width,
+                                 self._zoomedview.height < self._canvas.GetSize().height)
+        # if viewport is smaller than drawing plate we have to increase(zoom.factor) size of drawing objects because its zoomed in
+        # otherwise decrease(zoom.reciprocal)
+        # here we missing the object zoom factor for height
+        self._object_zoom_factor = self._zoom.factor if self._should_scale_up[0] else self._zoom.reciprocal
+
+        # if viewport is smaller than drawing plate we have decrease map area because its zoomed in otherwise increase
+        # original map size
+        self._map_zoom_factor = self._zoom.reciprocal if self._should_scale_up[0] else self._zoom.factor
+
+        ---- this is additional / redundant----
+        area: selection:
+        old: zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+        new: zoom = self._zoom.reciprocal if self._should_scale_up[0] else self._zoom.reciprocal# can removed
+        single select:
+        old: zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+        new: zoom = self._zoom.reciprocal if self._should_scale_up[0] else self._zoom.reciprocal# can removed
+        draw object:
+        old: zoom = self._object_zoom_factor if self._should_scale_up[0] else self._map_zoom_factor
+        new: zoom = self._zoom.factor if self._should_scale_up[0] else self._zoom.factor# can removed
+        draw Background:
+        #increase map area if viewport is smaller then drawing plate, otherwise decrease map area
+        old:
+        scalew = self._canvas.GetSize().width if self._should_scale_up[0] else self._normalized.width * self._map_zoom_factor
+        scaleh = self._canvas.GetSize().height if self._should_scale_up[1] else self._normalized.height * self._map_zoom_factor
+        new:
+        scalew = self._canvas.GetSize().width if self._should_scale_up[0] else self._normalized.width * self._zoom.factor
+        scaleh = self._canvas.GetSize().height if self._should_scale_up[1] else self._normalized.height * self._zoom.factor
+        ---------------------------------------
+    Current handling:
+        - INIT_MAP:
+            self._object_zoom_factor = self._zoom.factor    #1.0
+            self._map_zoom_factor = self._zoom.reciprocal   #1.0
+            self._should_scale_up = (False, False)
+        - SET_BACKGROUND:
+            self._zoom.factor = 1.0
+        - DO_ZOOM:
+            self._zoom.factor = float(zoom_value) / 100.0
+        - DRAW_BACKGROUND:
+            #increase map area if viewport is smaller then drawing plate, otherwise decrease map area
+            scalew = self._canvas.GetSize().width if self._should_scale_up[0] else self._normalized.width * self._map_zoom_factor
+            scaleh = self._canvas.GetSize().height if self._should_scale_up[1] else self._normalized.height * self._map_zoom_factor
+
+            if not self._should_scale_up[0] or not self._should_scale_up[1]: dc.SetBackground(wx.BLACK_BRUSH);dc.Clear()
+            subimg = self._bg_image.GetSubImage(self._normalized).Scale(scalew, scaleh)
+        - DRAW_OBJECTS:
+            #if viewport is smaller than drawing plate we have to increase size of objects otherwise decrease
+            zoom = self._object_zoom_factor if self._should_scale_up[0] else self._map_zoom_factor
+            shape.set_pos(wx.Point((temppos.x - self._zoomedview.x) * zoom, (temppos.y - self._zoomedview.y) * zoom))
+            shape.set_size(wx.Size(tempsize.width * zoom, tempsize.height * zoom))
+        - SINGLE_SELECT_AT:
+            zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+            sel_pos = wx.Point(self._zoomedview.x + (x * zoom), self._zoomedview.y + (y * zoom))
+        - AREA_SELECTION
+            zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+
+            selected_area.x = self._zoomedview.x + (selected_area.x * zoom)
+            selected_area.y = self._zoomedview.y + (selected_area.y * zoom)
+            selected_area.width *= zoom
+            selected_area.height *= zoom
+        - ADD SHAPE
+            zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+            newpos = wx.Point(self._zoomedview.x + (pos_x * zoom), self._zoomedview.y + (pos_y * zoom))
+        - SCROLLBAR_UPDATE
+            zoom = self._map_zoom_factor if self._should_scale_up[0] else self._object_zoom_factor
+            self._scrollbar.horizontal.thumb_size = realsize.width * zoom
+            self._scrollbar.vertical.thumb_size = realsize.height * zoom

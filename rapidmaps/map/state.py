@@ -28,6 +28,8 @@ class MapStateType(Enum):
     MOVING_MODE_UI = auto()             # UI Element, moving active
     # combined states
     SELECTION_IS_MOVING = auto()        # selected item woving around
+    # Zoom states
+
 
     @classmethod
     def contains(cls, state) -> bool:
