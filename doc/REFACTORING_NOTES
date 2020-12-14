@@ -1,5 +1,9 @@
 REF-1: Refactoring zoom and scale structure
 
+    RESULT:
+        - We removed the _object_zoom_factor and _map_zoom_factor in Reason of unnecessary calculations and complex
+          reading. We are using an zooming factor and it's reciprocal instead.
+
     MAIN_FUNCTION:
      def _refresh_view_state(self):
         self._zoomedview = wx.Rect(self._view.viewport)

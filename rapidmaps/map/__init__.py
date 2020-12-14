@@ -7,11 +7,51 @@ from rapidmaps.map.state import MapStateTranslator, MapState, MapStateType
 from rapidmaps.map.shape import *
 
 
+class MapZoom(object):
+
+    def __init__(self):
+        self._factor = 1.0
+        self._factor_reciprocal = 1.0
+
+    @property
+    def factor(self):
+        return self._factor
+
+    @factor.setter
+    def factor(self, newfactor: float):
+        self._factor = newfactor
+        self._factor_reciprocal = 1.0 / newfactor
+
+    @property
+    def reciprocal(self):
+        return self._factor_reciprocal
+
+
+class MapViewport(object):
+
+    def __init__(self):
+        self._base = wx.Rect()
+        self._zoomed = wx.Rect()
+
+    @property
+    def base(self):
+        return self._base
+
+    @property
+    def zoomed(self):
+        return self._zoomed
+
+    @zoomed.setter
+    def zoomed(self, zoomed: wx.Rect):
+        self._zoomed = zoomed
+
+
 class MapView(object):
     def __init__(self):
-        self._vsize = wx.Size()     #virtual map Size
-        self._rsize = wx.Size()     #real map Size
-        self._view = wx.Rect()      #current map viewport
+        self._vsize = wx.Size()         #virtual map Size
+        self._rsize = wx.Size()         #real map Size
+        self._viewport = MapViewport()  #current map viewport
+        self._zoom = MapZoom()          #
 
     @property
     def rsize(self) -> wx.Size:
@@ -31,11 +71,20 @@ class MapView(object):
 
     @property
     def viewport(self) -> wx.Rect:
-        return self._view
+        return self._viewport
 
     @viewport.setter
     def viewport(self, viewport: wx.Rect):
-        self._view = viewport
+        self._viewport = viewport
+
+    @property
+    def zoom(self):
+        return self._zoom
+
+    def refresh_zoomed_vport(self):
+        self._viewport.zoomed = wx.Rect(self._viewport.base)
+        self._viewport.zoomed.width *= self._zoom.reciprocal
+        self._viewport.zoomed.height *= self._zoom.reciprocal
 
 
 class ScrollbarParameter(object):
@@ -100,38 +149,6 @@ class ScrollbarDimensions(object):
         self._horizontal = horizontal if horizontal else ScrollbarParameter()
 
 
-class MapZoom(object):
-
-    def __init__(self):
-        self._factor = 1.0
-        self._factor_reciprocal = 1.0
-
-    @property
-    def factor(self):
-        return self._factor
-
-    @factor.setter
-    def factor(self, newfactor: float):
-        self._factor = newfactor
-        self._factor_reciprocal = 1.0 / newfactor
-
-    @property
-    def reciprocal(self):
-        return self._factor_reciprocal
-
-
-class MapScaleEntry(object):
-    pass
-
-
-class MapScale(object):
-
-    def __init__(self, mapzoom: MapZoom):
-        self._width = MapScaleEntry()
-        self._height = MapScaleEntry()
-        self._zoom =mapzoom
-
-
 class RapidMap(object):
 
     def __init__(self, canvas: wx.Panel):
@@ -145,10 +162,8 @@ class RapidMap(object):
         self._canvas = canvas
         self._bg_bitmap = None
         self._bg_image = None
-        self._zoom = MapZoom()
         self._view = MapView()
-        self._zoomedview = wx.Rect(self._view.viewport)
-        self._normalized = wx.Rect(self._view.viewport)
+        self._normalized = wx.Rect(self._view.viewport.base)
         self._should_scale_up = (False, False)
         self._ms.set(MapStateType.MOVING_MODE_UI, True)
         self._ms.set(MapStateType.SELECTION_MODE_UI, False)
@@ -206,40 +221,27 @@ class RapidMap(object):
     def view(self) -> wx.Rect:
         return self._view
 
-    @property
-    def zoom(self):
-        return self._zoom
-
-    @property
-    def zoomedview(self):
-        return self._zoomedview
-
-    @zoom.setter
-    def zoom(self, zoom: tuple):
-        self._zoom = zoom
-
     def _refresh_view_state(self):
-        self._zoomedview = wx.Rect(self._view.viewport) 
-        self._zoomedview.width *= self._zoom.reciprocal
-        self._zoomedview.height *= self._zoom.reciprocal
-        self._normalized = wx.Rect(self._zoomedview.x, self._zoomedview.y,
+        self._view.refresh_zoomed_vport()
+        zoomedview = self._view.viewport.zoomed
+        self._normalized = wx.Rect(zoomedview.x, zoomedview.y,
                                  min(self._bg_image.GetSize().width if self._bg_bitmap else self._view.rsize.width,
-                                     self._zoomedview.width),
+                                     zoomedview.width),
                                  min(self._bg_image.GetSize().height if self._bg_bitmap else self._view.rsize.height,
-                                     self._zoomedview.height))
-        self._should_scale_up = (self._zoomedview.width < self._canvas.GetSize().width,
-                                 self._zoomedview.height < self._canvas.GetSize().height)
+                                     zoomedview.height))
+        self._should_scale_up = (zoomedview.width < self._canvas.GetSize().width,
+                                 zoomedview.height < self._canvas.GetSize().height)
 
     def set_background(self, image: wx.Image):
         if image:
             self._bg_image = image
             self._bg_bitmap = self._bg_image.ConvertToBitmap()
             self._view.vsize = self._bg_image.GetSize()
-            self._view.viewport.x = 0
-            self._view.viewport.y = 0
-            self._view.viewport.width = self._canvas.GetSize().width
-            self._view.viewport.height = self._canvas.GetSize().height
-            self._zoom.factor = 1.0
+            self._view.viewport.base.x = 0
+            self._view.viewport.base.y = 0
+            self._view.viewport.base.width = self._canvas.GetSize().width
+            self._view.viewport.base.height = self._canvas.GetSize().height
+            self._view.zoom.factor = 1.0
             self._canvas.Refresh()
 
     def _realign_viewport_on_overflow(self):
@@ -250,12 +252,12 @@ class RapidMap(object):
         scrollovery = self._bg_bitmap.GetSize().height - (self._normalized.y + self._normalized.height)
         scrollovery = 0.0 if scrollovery > 0 else scrollovery
 
-        self._view.viewport.x += scrolloverx
-        self._view.viewport.y += scrollovery
+        self._view.viewport.base.x += scrolloverx
+        self._view.viewport.base.y += scrollovery
 
     def do_zoom(self, zoom_value: int):
         if self._bg_image:
-            self._zoom.factor = float(zoom_value) / 100.0
+            self._view.zoom.factor = float(zoom_value) / 100.0
 
             self._refresh_view_state()
 
@@ -265,8 +267,8 @@ class RapidMap(object):
 
     def do_resize_viewport(self, newsize: wx.Size):
         self._view.rsize = newsize
-        self._view.viewport.width = newsize.width
-        self._view.viewport.height = newsize.height
+        self._view.viewport.base.width = newsize.width
+        self._view.viewport.base.height = newsize.height
         self._refresh_view_state()
         self._realign_viewport_on_overflow()
 
@@ -274,10 +276,10 @@ class RapidMap(object):
         if self._bg_bitmap:
 
             scalew = self._canvas.GetSize().width if self._should_scale_up[0] \
-                else self._normalized.width * self._zoom.factor
+                else self._normalized.width * self._view.zoom.factor
 
             scaleh = self._canvas.GetSize().height if self._should_scale_up[1] \
-                else self._normalized.height * self._zoom.factor
+                else self._normalized.height * self._view.zoom.factor
 
             if not self._should_scale_up[0] or not self._should_scale_up[1]:
                 dc.SetBackground(wx.BLACK_BRUSH)
@@ -289,21 +291,23 @@ class RapidMap(object):
         elif not self._bg_image:
             dc.SetBackground(wx.BLACK_BRUSH)
             dc.Clear()
-            self._view.viewport.x = 0
-            self._view.viewport.y = 0
-            self._view.viewport.width = self._canvas.GetSize().width
-            self._view.viewport.height = self._canvas.GetSize().height
+            self._view.viewport.base.x = 0
+            self._view.viewport.base.y = 0
+            self._view.viewport.base.width = self._canvas.GetSize().width
+            self._view.viewport.base.height = self._canvas.GetSize().height
 
     def _draw_objects(self, dc):
         for shape in self.__shape_obj:
-            if shape.get_bbox().Intersects(self._zoomedview):
-                if self._zoom.factor > 0:
+            zoomedview = self._view.viewport.zoomed
+            zoom = self._view.zoom.factor
+            if shape.get_bbox().Intersects(zoomedview):
+                if zoom > 0:
                     temppos = shape.get_pos()
                     tempsize = shape.get_size()
-                    shape.set_pos(wx.Point((temppos.x - self._zoomedview.x) * self._zoom.factor,
-                                           (temppos.y - self._zoomedview.y) * self._zoom.factor))
-                    shape.set_size(wx.Size(tempsize.width * self._zoom.factor,
-                                           tempsize.height * self._zoom.factor))
+                    shape.set_pos(wx.Point((temppos.x - zoomedview.x) * zoom,
+                                           (temppos.y - zoomedview.y) * zoom))
+                    shape.set_size(wx.Size(tempsize.width * zoom,
+                                           tempsize.height * zoom))
 
                     shape.draw_by_dc(dc)
                     shape.set_pos(temppos)
@@ -328,9 +332,9 @@ class RapidMap(object):
     def single_select_at(self, x: int, y: int) -> Union[Shape, None]:
         anyselected = False
         for shape in self.__shape_obj:
-
-            sel_pos = wx.Point(self._zoomedview.x + (x * self._zoom.reciprocal),
-                               self._zoomedview.y + (y * self._zoom.reciprocal))
+            zoomedview = self._view.viewport.zoomed
+            sel_pos = wx.Point(zoomedview.x + (x * self._view.zoom.reciprocal),
+                               zoomedview.y + (y * self._view.zoom.reciprocal))
 
             if shape.intersect_by(sel_pos):
                 self.__sel_shape = shape
@@ -361,11 +365,12 @@ class RapidMap(object):
             selected_area.height = abs(selected_area.height)
 
         if selected_area.width > 0 and selected_area.height > 0:
-
-            selected_area.x = self._zoomedview.x + (selected_area.x * self._zoom.reciprocal)
-            selected_area.y = self._zoomedview.y + (selected_area.y * self._zoom.reciprocal)
-            selected_area.width *= self._zoom.reciprocal
-            selected_area.height *= self._zoom.reciprocal
+            zoomedview = self._view.viewport.zoomed
+            zoom = self._view.zoom.reciprocal
+            selected_area.x = zoomedview.x + (selected_area.x * zoom)
+            selected_area.y = zoomedview.y + (selected_area.y * zoom)
+            selected_area.width *= zoom
+            selected_area.height *= zoom
 
             for shape in self.__shape_obj:
 
@@ -381,9 +386,10 @@ class RapidMap(object):
 
     def add_shape(self, shape_type: int, pos_x: int, pos_y: int):
         new_obj = self.__shape_clz[shape_type]()
-
-        newpos = wx.Point(self._zoomedview.x + (pos_x * self._zoom.reciprocal),
-                          self._zoomedview.y + (pos_y * self._zoom.reciprocal))
+        zoomedview = self._view.viewport.zoomed
+        zoom = self._view.zoom.reciprocal
+        newpos = wx.Point(zoomedview.x + (pos_x * zoom),
+                          zoomedview.y + (pos_y * zoom))
 
         new_obj.set_pos(position=newpos)
 
@@ -391,7 +397,7 @@ class RapidMap(object):
         self._canvas.Refresh()
 
     def move_selected_shapes(self):
-        self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff * self._zoom.reciprocal])
+        self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff * self._view.zoom.reciprocal])
         self._canvas.Refresh()
 
     def get_update_scrollbar_dimensions(self) -> ScrollbarDimensions:
@@ -400,12 +406,12 @@ class RapidMap(object):
             newvize = self._bg_image.GetSize()
             realsize = self._canvas.GetSize()
 
-            self._scrollbar.horizontal.pos = self._view.viewport.x
-            self._scrollbar.horizontal.thumb_size = realsize.width * self._zoom.reciprocal
+            self._scrollbar.horizontal.pos = self._view.viewport.base.x
+            self._scrollbar.horizontal.thumb_size = realsize.width * self._view.zoom.reciprocal
             self._scrollbar.horizontal.max_pos = newvize.width
             self._scrollbar.horizontal.page_size = realsize.width
-            self._scrollbar.vertical.pos = self._view.viewport.y
-            self._scrollbar.vertical.thumb_size = realsize.height * self._zoom.reciprocal
+            self._scrollbar.vertical.pos = self._view.viewport.base.y
+            self._scrollbar.vertical.thumb_size = realsize.height * self._view.zoom.reciprocal
             self._scrollbar.vertical.max_pos = newvize.height
             self._scrollbar.vertical.page_size = realsize.height
         else:

@@ -193,12 +193,12 @@ class RapidMapFrame(MainFrame):
 
     def m_map_hscrollOnScroll(self, event):
         # todo only repaint until realtim scroll is enabled(should be added)
-        self._map.view.viewport.x = event.Position
+        self._map.view.viewport.base.x = event.Position
         self.canvas.Refresh()
 
     def m_map_vscrollOnScroll(self, event):
         #todo only repaint until realtim scroll is enabled(should be added)
-        self._map.view.viewport.y = event.Position
+        self._map.view.viewport.base.y = event.Position
         self.canvas.Refresh()
 
     def canvasOnMouseWheel(self, event):
