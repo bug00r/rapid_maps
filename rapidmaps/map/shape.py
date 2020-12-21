@@ -189,7 +189,7 @@ class CharImage(ImageShape):
     def __init__(self):
         super().__init__()
         self._name = "Char"
-        self.set_image(wx.Image("./../test/examplemaps/woman.png", wx.BITMAP_TYPE_ANY))
+        self.set_image(wx.Image("./test/examplemaps/woman.png", wx.BITMAP_TYPE_ANY))
 
 
 class ImageCircle(ImageShape):

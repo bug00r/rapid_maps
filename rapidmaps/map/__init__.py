@@ -5,6 +5,7 @@ import wx
 from rapidmaps.map.selection import Selections
 from rapidmaps.map.state import MapStateTranslator, MapState, MapStateType
 from rapidmaps.map.shape import *
+from rapidmaps.map.shape_lib import ShapeLibraryLoader
 
 
 class MapZoom(object):
@@ -151,8 +152,10 @@ class ScrollbarDimensions(object):
 
 class RapidMap(object):
 
-    def __init__(self, canvas: wx.Panel):
+    def __init__(self, canvas: wx.Panel, appconf):
+        self._appconf = appconf
         self.__shape_clz = [Point, Quad, Circle, CharImage, ImageQuad, ImageCircle]
+        self._shape_lib = ShapeLibraryLoader(appconf.shape_path).to_lib()
         self._selections = Selections()
         self.__sel_shape = None
         # new parts

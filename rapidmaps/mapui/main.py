@@ -14,8 +14,9 @@ class RapidMapFrame(MainFrame):
 
     def __init__(self):
         super().__init__(None)
+        self._appconfig = wx.GetApp().app_conf
         self.canvas.SetBackgroundStyle(BG_STYLE_PAINT)
-        self._map = RapidMap(self.canvas)
+        self._map = RapidMap(self.canvas, self._appconfig)
         self.__shape_obj = self._map.map_objects
         self._selections = self._map.selections
         self._ms = self._map.mapstate

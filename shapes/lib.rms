@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shapes map-v="1.0" >
+    <group name="Persons">
+        <shape name="Woman" type="image" file="persons/woman.png"/>
+    </group>
+    <group name="Buildings">
+    </group>
+    <group name="Objects">
+        <shape name="Circle" type="circle" >
+            <param name="radius" value="10" />
+            <param name="color" value="RED" />
+        </shape>
+        <shape name="Rectangle" type="rectangle" >
+            <param name="width" value="20" />
+            <param name="height" value="20" />
+            <param name="color" value="RED" />
+        </shape>
+        <shape name="Triangle">
+            <param name="p1" x="0" y="20" />
+            <param name="p2" x="21" y="21" />
+            <param name="p3" x="11" y="0" />
+            <param name="color" value="BLUE" />
+        </shape>
+    </group>
+</shapes>
