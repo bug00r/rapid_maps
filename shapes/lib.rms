@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shapes map-v="1.0" >
     <group name="Persons">
-        <shape name="Woman" type="image" file="persons/woman.png"/>
+        <shape name="Woman" type="image">
+            <param name="file" value="persons/woman.png" />
+        </shape>
     </group>
     <group name="Buildings">
     </group>
     <group name="Objects">
         <shape name="Circle" type="circle" >
             <param name="radius" value="10" />
-            <param name="color" value="RED" />
+            <param name="color" value="YELLOW" />
         </shape>
         <shape name="Rectangle" type="rectangle" >
             <param name="width" value="20" />
@@ -16,9 +18,18 @@
             <param name="color" value="RED" />
         </shape>
         <shape name="Triangle">
-            <param name="p1" x="0" y="20" />
-            <param name="p2" x="21" y="21" />
-            <param name="p3" x="11" y="0" />
+            <param name="p1">
+                <param name="x" value="0" />
+                <param name="y" value="20" />
+            </param>
+            <param name="p2">
+                <param name="x" value="21" />
+                <param name="y" value="21" />
+            </param>
+            <param name="p3">
+                <param name="x" value="11" />
+                <param name="y" value="0" />
+            </param>
             <param name="color" value="BLUE" />
         </shape>
     </group>
