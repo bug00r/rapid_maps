@@ -43,7 +43,6 @@ class ShapeLibrary(object):
 
     def __init__(self):
         self._shape_cache = {}
-        self._shape_groups = {}
 
     def get(self, shape_name):
         if shape_name in self._shape_cache:
