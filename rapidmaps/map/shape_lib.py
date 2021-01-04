@@ -1,7 +1,8 @@
 from pathlib import Path
 from lxml import etree
+import wx
 
-from rapidmaps.map.shape import Shape
+from rapidmaps.map.shape import Shape, ImageShape
 
 
 class ShapeExistException(Exception):
@@ -14,6 +15,58 @@ class ShapeNotExistException(Exception):
 
 class ShapeParameter(object):
     pass
+
+
+class ShapeCreator(object):
+
+    def __init__(self, param: ShapeParameter):
+        self._param = param
+        self._lib_path = None
+
+    def create(self) -> Shape:
+        pass
+
+    def set_lib_path(self, lib_path: Path):
+        self._lib_path = lib_path
+
+
+class UnknownShapeCreator(ShapeCreator):
+
+    def __init__(self, param: ShapeParameter):
+        super().__init__(param)
+
+    def create(self) -> Shape:
+        return None
+
+
+class ShapeImageCreator(ShapeCreator):
+
+    def __init__(self, param: ShapeParameter):
+        super().__init__(param)
+
+    def create(self) -> Shape:
+        shape_obj = ImageShape()
+        shape_obj.set_name(self._param.name)
+        img_path = self._lib_path.joinpath(*self._param.file.split('/'))
+        shape_obj.set_image(wx.Image(str(img_path), wx.BITMAP_TYPE_ANY))
+        return shape_obj
+
+
+class ShapeFactory(object):
+
+    creator_pool = {
+        'image': ShapeImageCreator,
+        'unknown': UnknownShapeCreator
+    }
+
+    def __init__(self, library_path: Path):
+        self._lib_path = library_path
+
+    def create(self, param: ShapeParameter) -> Shape:
+        creator_clazz = self.creator_pool.get(param.type, UnknownShapeCreator)
+        creator_obj = creator_clazz(param)
+        creator_obj.set_lib_path(self._lib_path)
+        return creator_obj.create()
 
 
 class ShapeEntry(object):
@@ -39,10 +92,25 @@ class ShapeEntry(object):
         self._shape = new_shape
 
 
+class ShapeEntryMetaWrapper(object):
+
+    def __init__(self, entry: ShapeEntry):
+        self._entry = entry
+
+    @property
+    def name(self):
+        return self._entry.param.name
+
+    @property
+    def group(self):
+        return self._entry.param.group
+
+
 class ShapeLibrary(object):
 
     def __init__(self):
         self._shape_cache = {}
+        self._shape_meta = None
 
     def get(self, shape_name):
         if shape_name in self._shape_cache:
@@ -68,11 +136,17 @@ class ShapeLibrary(object):
     def clear(self):
         self._shape_cache.clear()
 
+    def get_shapes(self):
+        if not self._shape_meta:
+            self._shape_meta = [ShapeEntryMetaWrapper(shape) for shape in self._shape_cache.values()]
+        return self._shape_meta
+
 
 class ShapeLibraryLoader(object):
 
     def __init__(self, library_path: Path):
         self._path = library_path
+        self._shape_factory = ShapeFactory(library_path)
 
     @classmethod
     def from_path_str(cls, library_path: str):
@@ -88,10 +162,14 @@ class ShapeLibraryLoader(object):
     def _xml_element_to_shape_entry(self, xmlelement) -> ShapeEntry:
         param = self._xml_to_param(xmlelement)
         new_shape_entry = ShapeEntry(xmlelement.get('name'), param)
+        self._create_shape(new_shape_entry)
         return new_shape_entry
 
     def _xml_to_param(self, xmlelement) -> ShapeParameter:
         newparam = ShapeParameter()
+        setattr(newparam, 'name', xmlelement.get('name', default='UNKNOWN'))
+        setattr(newparam, 'type', xmlelement.get('type', default='UNKNOWN'))
+        setattr(newparam, 'group', xmlelement.getparent().get('name', default='UNKNOWN'))
         for param in xmlelement.xpath('./param'):
             setattr(newparam, param.get('name'), self._examine_param_value(param))
         return newparam
@@ -107,9 +185,11 @@ class ShapeLibraryLoader(object):
             result = param.get('value')
         return result
 
+    def _create_shape(self, entry: ShapeEntry):
+        if not entry.shape:
+            entry.shape = self._shape_factory.create(entry.param)
+
     def to_lib(self) -> ShapeLibrary:
         shapelib = ShapeLibrary()
         self._load_lib(shapelib)
         return shapelib
-
-

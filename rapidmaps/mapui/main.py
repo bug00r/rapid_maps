@@ -17,10 +17,32 @@ class RapidMapFrame(MainFrame):
         self._appconfig = wx.GetApp().app_conf
         self.canvas.SetBackgroundStyle(BG_STYLE_PAINT)
         self._map = RapidMap(self.canvas, self._appconfig)
+        self._shape_lib = self._map.shape_lib
         self.__shape_obj = self._map.map_objects
         self._selections = self._map.selections
         self._ms = self._map.mapstate
         self._mst = self._map.mapstatetranslator
+        self._shape_lib_groups = {}
+        self._init_shapes()
+
+    def _init_shapes(self):
+        for shape_entry in self._shape_lib.get_shapes():
+
+            if not shape_entry.group in self._shape_lib_groups:
+                colpane = self._add_new_shape_group(shape_entry.group)
+                self._shape_lib_groups[shape_entry.group] = colpane
+            else:
+                colpane = self._shape_lib_groups[shape_entry.group]
+
+            sizer = colpane.GetPane().GetSizer()
+            sizer.Add(wx.Button(colpane.GetPane(), label=shape_entry.name), 0, wx.EXPAND)
+
+    def _add_new_shape_group(self, group_name) -> wx.CollapsiblePane:
+        new_cpane = wx.CollapsiblePane(self.m_shape_lib, wx.ID_ANY, f"{group_name}:")
+        grid_sizer = wx.GridSizer(rows=0, cols=3, gap=wx.Size(5,5))
+        new_cpane.GetPane().SetSizer(grid_sizer)
+        self.m_shape_lib.GetSizer().Add(new_cpane, 0, wx.GROW | wx.ALL, 5)
+        return new_cpane
 
     def on_mode_change(self, event):
         # event.Skip()

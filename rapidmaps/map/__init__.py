@@ -5,7 +5,7 @@ import wx
 from rapidmaps.map.selection import Selections
 from rapidmaps.map.state import MapStateTranslator, MapState, MapStateType
 from rapidmaps.map.shape import *
-from rapidmaps.map.shape_lib import ShapeLibraryLoader
+from rapidmaps.map.shape_lib import ShapeLibraryLoader, ShapeLibrary
 
 
 class MapZoom(object):
@@ -224,6 +224,10 @@ class RapidMap(object):
     def view(self) -> wx.Rect:
         return self._view
 
+    @property
+    def shape_lib(self) -> ShapeLibrary:
+        return self._shape_lib
+
     def _refresh_view_state(self):
         self._view.refresh_zoomed_vport()
         zoomedview = self._view.viewport.zoomed
@@ -249,14 +253,15 @@ class RapidMap(object):
 
     def _realign_viewport_on_overflow(self):
         ## If scroll position + normalized screen width overflows on zoom we have to recalculate and refresh
-        scrolloverx = self._bg_bitmap.GetSize().width - (self._normalized.x + self._normalized.width)
-        scrolloverx = 0.0 if scrolloverx > 0 else scrolloverx
+        if self._bg_bitmap:
+            scrolloverx = self._bg_bitmap.GetSize().width - (self._normalized.x + self._normalized.width)
+            scrolloverx = 0.0 if scrolloverx > 0 else scrolloverx
 
-        scrollovery = self._bg_bitmap.GetSize().height - (self._normalized.y + self._normalized.height)
-        scrollovery = 0.0 if scrollovery > 0 else scrollovery
+            scrollovery = self._bg_bitmap.GetSize().height - (self._normalized.y + self._normalized.height)
+            scrollovery = 0.0 if scrollovery > 0 else scrollovery
 
-        self._view.viewport.base.x += scrolloverx
-        self._view.viewport.base.y += scrollovery
+            self._view.viewport.base.x += scrolloverx
+            self._view.viewport.base.y += scrollovery
 
     def do_zoom(self, zoom_value: int):
         if self._bg_image:

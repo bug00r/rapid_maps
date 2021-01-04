@@ -17,7 +17,7 @@
             <param name="height" value="20" />
             <param name="color" value="RED" />
         </shape>
-        <shape name="Triangle">
+        <shape name="Triangle" type="triangle">
             <param name="p1">
                 <param name="x" value="0" />
                 <param name="y" value="20" />
