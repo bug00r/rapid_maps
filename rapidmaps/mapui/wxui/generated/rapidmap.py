@@ -54,9 +54,10 @@ class MainFrame ( wx.Frame ):
 		self.m_actions.SetSelection( 0 )
 		bSizer31.Add( self.m_actions, 0, wx.ALL|wx.EXPAND, 5 )
 
-		colsizer = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Shapes" ), wx.VERTICAL )
+		self.m_panel311 = wx.Panel( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		colsizer = wx.StaticBoxSizer( wx.StaticBox( self.m_panel311, wx.ID_ANY, u"Shapes" ), wx.VERTICAL )
 
-		self.m_shape_lib = wx.Panel( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_shape_lib = wx.Panel( self.m_panel311, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		m_shape_lib_sizer = wx.BoxSizer( wx.VERTICAL )
 
 
@@ -66,7 +67,10 @@ class MainFrame ( wx.Frame ):
 		colsizer.Add( self.m_shape_lib, 1, wx.EXPAND |wx.ALL, 5 )
 
 
-		bSizer31.Add( colsizer, 1, wx.ALL|wx.EXPAND, 5 )
+		self.m_panel311.SetSizer( colsizer )
+		self.m_panel311.Layout()
+		colsizer.Fit( self.m_panel311 )
+		bSizer31.Add( self.m_panel311, 1, wx.EXPAND |wx.ALL, 5 )
 
 		m_shapesChoices = [ u"Point", u"Quad", u"Circle", u"Woman", u"ImageQuad", u"ImageCircle" ]
 		self.m_shapes = wx.RadioBox( self.m_panel3, wx.ID_ANY, u"Shapes", wx.DefaultPosition, wx.DefaultSize, m_shapesChoices, 1, wx.RA_SPECIFY_COLS )
@@ -172,7 +176,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel6.SetSizer( bSizer6 )
 		self.m_panel6.Layout()
 		bSizer6.Fit( self.m_panel6 )
-		self.m_splitter1.SplitVertically( self.m_scrolledWindow2, self.m_panel6, 120 )
+		self.m_splitter1.SplitVertically( self.m_scrolledWindow2, self.m_panel6, 160 )
 		bSizer1.Add( self.m_splitter1, 1, wx.EXPAND, 5 )
 
 
@@ -289,7 +293,7 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def m_splitter1OnIdle( self, event ):
-		self.m_splitter1.SetSashPosition( 120 )
+		self.m_splitter1.SetSashPosition( 160 )
 		self.m_splitter1.Unbind( wx.EVT_IDLE )
 
 

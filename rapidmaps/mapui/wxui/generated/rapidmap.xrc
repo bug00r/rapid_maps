@@ -27,7 +27,7 @@
 		</object>
 		<object class="wxSplitterWindow" name="m_splitter1">
 			<style>wxSP_3D</style>
-			<sashpos>120</sashpos>
+			<sashpos>160</sashpos>
 			<gravity>0</gravity>
 			<minsize>0</minsize>
 			<orientation>vertical</orientation>
@@ -62,19 +62,22 @@
 								</object>
 								<object class="sizeritem">
 									<option>1</option>
-									<flag>wxALL|wxEXPAND</flag>
+									<flag>wxEXPAND | wxALL</flag>
 									<border>5</border>
-									<object class="wxStaticBoxSizer">
-										<orient>wxVERTICAL</orient>
-										<label>Shapes</label>
-										<object class="sizeritem">
-											<option>1</option>
-											<flag>wxEXPAND | wxALL</flag>
-											<border>5</border>
-											<object class="wxPanel" name="m_shape_lib">
-												<style>wxTAB_TRAVERSAL</style>
-												<object class="wxBoxSizer">
-													<orient>wxVERTICAL</orient>
+									<object class="wxPanel" name="m_panel311">
+										<style>wxTAB_TRAVERSAL</style>
+										<object class="wxStaticBoxSizer">
+											<orient>wxVERTICAL</orient>
+											<label>Shapes</label>
+											<object class="sizeritem">
+												<option>1</option>
+												<flag>wxEXPAND | wxALL</flag>
+												<border>5</border>
+												<object class="wxPanel" name="m_shape_lib">
+													<style>wxTAB_TRAVERSAL</style>
+													<object class="wxBoxSizer">
+														<orient>wxVERTICAL</orient>
+													</object>
 												</object>
 											</object>
 										</object>
