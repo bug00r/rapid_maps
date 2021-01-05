@@ -36,11 +36,21 @@ class RapidMapFrame(MainFrame):
             else:
                 colpane = self._shape_lib_groups[shape_entry.group]
 
-            sizer = colpane.GetPane().GetSizer()
-            c_btn = wx.ToggleButton(colpane.GetPane(), size=wx.Size(32,32))
+            c_btn = wx.BitmapToggleButton(colpane.GetPane())
+            c_btn.SetBitmapMargins(0,0)
             c_btn.Bind(wx.EVT_TOGGLEBUTTON, self.on_shape_btn_pressed)
             self._all_shape_btns[c_btn] = shape_entry.name
-            sizer.Add(c_btn, 1, wx.ALL, 2)
+            colpane.GetPane().GetSizer().Add(c_btn, 1, wx.ALL, 2)
+
+            if shape_entry.shape:
+                size = shape_entry.shape.get_size()
+                thumb = wx.EmptyBitmapRGBA(size.width, size.height, alpha=1)
+                thumb_dc = wx.MemoryDC(thumb)
+                shape_entry.shape.show_label(False)
+                shape_entry.shape.draw_by_dc(thumb_dc)
+                shape_entry.shape.show_label(True)
+                thumb_img = thumb.ConvertToImage().Rescale(32, 32)
+                c_btn.SetBitmap(thumb_img.ConvertToBitmap())
 
     def on_shape_btn_pressed(self, event):
         if self._cur_shape_btn:
@@ -51,7 +61,7 @@ class RapidMapFrame(MainFrame):
     def _add_new_shape_group(self, group_name) -> wx.CollapsiblePane:
         new_cpane = wx.CollapsiblePane(self.m_shape_lib, wx.ID_ANY, f"{group_name}:", style=wx.CP_NO_TLW_RESIZE)
         new_cpane.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_shape_group_collapse)
-        grid_sizer = wx.GridSizer(rows=0, cols=3, gap=wx.Size(5,5))
+        grid_sizer = wx.GridSizer(rows=0, cols=3, gap=wx.Size(2,2))
         new_cpane.GetPane().SetSizer(grid_sizer)
         grid_sizer.SetSizeHints(new_cpane.GetPane())
         self.m_shape_lib.GetSizer().Add(new_cpane, 0, wx.GROW | wx.ALL, 5)

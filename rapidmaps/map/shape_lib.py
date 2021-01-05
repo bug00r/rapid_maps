@@ -105,6 +105,10 @@ class ShapeEntryMetaWrapper(object):
     def group(self):
         return self._entry.param.group
 
+    @property
+    def shape(self):
+        return self._entry.shape
+
 
 class ShapeLibrary(object):
 

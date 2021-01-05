@@ -16,6 +16,10 @@ class Shape(object):
         self._angle = 0
         self._angle_changed = False
         self._selected = False
+        self._show_label = True
+
+    def show_label(self, show: bool):
+        self._show_label = show
 
     def get_bbox(self):
         return wx.Rect(self._pos, self._size)
@@ -170,12 +174,13 @@ class ImageShape(Shape):
                 self._bitmap = usedimg.ConvertToBitmap()
                 self._size = self._bitmap.GetSize()
 
-            font = dc.GetFont()
-            font.SetPointSize(self._text_size)
-            dc.SetFont(font)
-            txtw, txth = dc.GetTextExtent(self._name)
-            dc.DrawRoundedRectangle(self._pos.x, self._pos.y - (txth+6), txtw+6, txth+5, 2)
-            dc.DrawText(self._name, self._pos.x+3, self._pos.y - txth-2)
+            if self._show_label:
+                font = dc.GetFont()
+                font.SetPointSize(self._text_size)
+                dc.SetFont(font)
+                txtw, txth = dc.GetTextExtent(self._name)
+                dc.DrawRoundedRectangle(self._pos.x, self._pos.y - (txth+6), txtw+6, txth+5, 2)
+                dc.DrawText(self._name, self._pos.x+3, self._pos.y - txth-2)
             dc.DrawBitmap(self._bitmap, self._pos.x, self._pos.y)
 
             self._draw_outline(dc)
