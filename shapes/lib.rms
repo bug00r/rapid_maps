@@ -4,8 +4,61 @@
         <shape name="Woman" type="image">
             <param name="file" value="persons/woman.png" />
         </shape>
+        <shape name="Warrior" type="image">
+            <param name="file" value="persons/warrior.png" />
+        </shape>
+        <shape name="Mage of Elve" type="image">
+            <param name="file" value="persons/elfmage.png" />
+        </shape>
+        <shape name="Monk" type="image">
+            <param name="file" value="persons/monk.png" />
+        </shape>
+        <shape name="Thief" type="image">
+            <param name="file" value="persons/thief.png" />
+        </shape>
+        <shape name="Archer" type="image">
+            <param name="file" value="persons/archer.png" />
+        </shape>
+    </group>
+    <group name="Vegetation">
+        <shape name="Bush" type="image">
+            <param name="file" value="veggie/bush.png" />
+        </shape>
+        <shape name="Bush(Green)" type="image">
+            <param name="file" value="veggie/bush2.png" />
+        </shape>
+        <shape name="Bush(Berry)" type="image">
+            <param name="file" value="veggie/bush_berry.png" />
+        </shape>
+        <shape name="Farn" type="image">
+            <param name="file" value="veggie/farn.png" />
+        </shape>
+        <shape name="Tree" type="image">
+            <param name="file" value="veggie/tree.png" />
+        </shape>
+        <shape name="Rock" type="image">
+            <param name="file" value="veggie/rock.png" />
+        </shape>
+        <shape name="Large Rock" type="image">
+            <param name="file" value="veggie/rock2.png" />
+        </shape>
+        <shape name="Treestump(Axe)" type="image">
+            <param name="file" value="veggie/stump.png" />
+        </shape>
+        <shape name="Treestump" type="image">
+            <param name="file" value="veggie/stump2.png" />
+        </shape>
     </group>
     <group name="Buildings">
+        <shape name="House-L(Wood)" type="image">
+            <param name="file" value="building/house_large_wood.png" />
+        </shape>
+        <shape name="House-M(Wood)" type="image">
+            <param name="file" value="building/house_middle_wood.png" />
+        </shape>
+        <shape name="House-S(Wood)" type="image">
+            <param name="file" value="building/house_simple_wood.png" />
+        </shape>
     </group>
     <group name="Objects">
         <shape name="Circle" type="circle" >
