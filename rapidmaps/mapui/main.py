@@ -23,6 +23,8 @@ class RapidMapFrame(MainFrame):
         self._ms = self._map.mapstate
         self._mst = self._map.mapstatetranslator
         self._shape_lib_groups = {}
+        self._cur_shape_btn = None
+        self._all_shape_btns = {}
         self._init_shapes()
 
     def _init_shapes(self):
@@ -35,7 +37,16 @@ class RapidMapFrame(MainFrame):
                 colpane = self._shape_lib_groups[shape_entry.group]
 
             sizer = colpane.GetPane().GetSizer()
-            sizer.Add(wx.Button(colpane.GetPane(), size=wx.Size(32,32)), 1, wx.ALL, 2)
+            c_btn = wx.ToggleButton(colpane.GetPane(), size=wx.Size(32,32))
+            c_btn.Bind(wx.EVT_TOGGLEBUTTON, self.on_shape_btn_pressed)
+            self._all_shape_btns[c_btn] = shape_entry.name
+            sizer.Add(c_btn, 1, wx.ALL, 2)
+
+    def on_shape_btn_pressed(self, event):
+        if self._cur_shape_btn:
+            self._cur_shape_btn.SetValue(False)
+
+        self._cur_shape_btn = event.EventObject
 
     def _add_new_shape_group(self, group_name) -> wx.CollapsiblePane:
         new_cpane = wx.CollapsiblePane(self.m_shape_lib, wx.ID_ANY, f"{group_name}:", style=wx.CP_NO_TLW_RESIZE)
@@ -50,8 +61,9 @@ class RapidMapFrame(MainFrame):
         self.m_panel3.GetSizer().Layout()
         self.m_panel3.Refresh()
         #This is for redrawing leftpanel, little bit hacky
-        self.m_splitter1.SetSashPosition(self.m_splitter1.GetSashPosition() + 1)
-        self.m_splitter1.SetSashPosition(self.m_splitter1.GetSashPosition() - 1)
+        b_pos = self.m_splitter1.GetSashPosition()
+        self.m_splitter1.SetSashPosition(b_pos + 1)
+        self.m_splitter1.SetSashPosition(b_pos)
 
     def on_mode_change(self, event):
         # event.Skip()

@@ -54,10 +54,9 @@ class MainFrame ( wx.Frame ):
 		self.m_actions.SetSelection( 0 )
 		bSizer31.Add( self.m_actions, 0, wx.ALL|wx.EXPAND, 5 )
 
-		self.m_panel311 = wx.Panel( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		colsizer = wx.StaticBoxSizer( wx.StaticBox( self.m_panel311, wx.ID_ANY, u"Shapes" ), wx.VERTICAL )
+		colsizer = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Shapes" ), wx.VERTICAL )
 
-		self.m_shape_lib = wx.Panel( self.m_panel311, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_shape_lib = wx.Panel( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		m_shape_lib_sizer = wx.BoxSizer( wx.VERTICAL )
 
 
@@ -67,10 +66,7 @@ class MainFrame ( wx.Frame ):
 		colsizer.Add( self.m_shape_lib, 1, wx.EXPAND |wx.ALL, 5 )
 
 
-		self.m_panel311.SetSizer( colsizer )
-		self.m_panel311.Layout()
-		colsizer.Fit( self.m_panel311 )
-		bSizer31.Add( self.m_panel311, 1, wx.EXPAND |wx.ALL, 5 )
+		bSizer31.Add( colsizer, 1, wx.EXPAND, 5 )
 
 		m_shapesChoices = [ u"Point", u"Quad", u"Circle", u"Woman", u"ImageQuad", u"ImageCircle" ]
 		self.m_shapes = wx.RadioBox( self.m_panel3, wx.ID_ANY, u"Shapes", wx.DefaultPosition, wx.DefaultSize, m_shapesChoices, 1, wx.RA_SPECIFY_COLS )
