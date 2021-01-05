@@ -57,6 +57,8 @@ class MainFrame ( wx.Frame ):
 		colsizer = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Shapes" ), wx.VERTICAL )
 
 		self.m_shape_lib = wx.Panel( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_shape_lib.Enable( False )
+
 		m_shape_lib_sizer = wx.BoxSizer( wx.VERTICAL )
 
 
@@ -67,13 +69,6 @@ class MainFrame ( wx.Frame ):
 
 
 		bSizer31.Add( colsizer, 1, wx.EXPAND, 5 )
-
-		m_shapesChoices = [ u"Point", u"Quad", u"Circle", u"Woman", u"ImageQuad", u"ImageCircle" ]
-		self.m_shapes = wx.RadioBox( self.m_panel3, wx.ID_ANY, u"Shapes", wx.DefaultPosition, wx.DefaultSize, m_shapesChoices, 1, wx.RA_SPECIFY_COLS )
-		self.m_shapes.SetSelection( 0 )
-		self.m_shapes.Enable( False )
-
-		bSizer31.Add( self.m_shapes, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_panel31 = wx.Panel( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer4 = wx.BoxSizer( wx.VERTICAL )
@@ -186,7 +181,6 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.OnLoadMap, id = self.m_mi_loadmap.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnExit, id = self.m_mi_exit.GetId() )
 		self.m_actions.Bind( wx.EVT_RADIOBOX, self.on_mode_change )
-		self.m_shapes.Bind( wx.EVT_RADIOBOX, self.OnShapeChange )
 		self.m_name.Bind( wx.EVT_TEXT_ENTER, self.OnNameChanged )
 		self.m_size.Bind( wx.EVT_SCROLL, self.OnSizeChanged )
 		self.m_colour.Bind( wx.EVT_COLOURPICKER_CHANGED, self.OnColourChanged )
@@ -223,9 +217,6 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def on_mode_change( self, event ):
-		event.Skip()
-
-	def OnShapeChange( self, event ):
 		event.Skip()
 
 	def OnNameChanged( self, event ):

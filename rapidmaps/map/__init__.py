@@ -5,7 +5,7 @@ import wx
 from rapidmaps.map.selection import Selections
 from rapidmaps.map.state import MapStateTranslator, MapState, MapStateType
 from rapidmaps.map.shape import *
-from rapidmaps.map.shape_lib import ShapeLibraryLoader, ShapeLibrary
+from rapidmaps.map.shape_lib import ShapeLibraryLoader, ShapeLibrary, ShapeFactory, ShapeNotExistException
 
 
 class MapZoom(object):
@@ -154,7 +154,6 @@ class RapidMap(object):
 
     def __init__(self, canvas: wx.Panel, appconf):
         self._appconf = appconf
-        self.__shape_clz = [Point, Quad, Circle, CharImage, ImageQuad, ImageCircle]
         self._shape_lib = ShapeLibraryLoader(appconf.shape_path).to_lib()
         self._selections = Selections()
         self.__sel_shape = None
@@ -392,17 +391,25 @@ class RapidMap(object):
 
             self._canvas.Refresh()
 
-    def add_shape(self, shape_type: int, pos_x: int, pos_y: int):
-        new_obj = self.__shape_clz[shape_type]()
-        zoomedview = self._view.viewport.zoomed
-        zoom = self._view.zoom.reciprocal
-        newpos = wx.Point(zoomedview.x + (pos_x * zoom),
-                          zoomedview.y + (pos_y * zoom))
+    def add_shape_obj(self, shape_name: str, pos_x: int, pos_y: int):
+        try:
+            shape = self.shape_lib.get(shape_name)
+            new_obj = shape.shape_factory.create(shape.param)
+            if new_obj:
+                zoomedview = self._view.viewport.zoomed
+                zoom = self._view.zoom.reciprocal
+                newpos = wx.Point(zoomedview.x + (pos_x * zoom),
+                                  zoomedview.y + (pos_y * zoom))
 
-        new_obj.set_pos(position=newpos)
+                new_obj.set_pos(position=newpos)
 
-        self.__shape_obj.append(new_obj)
-        self._canvas.Refresh()
+                self.__shape_obj.append(new_obj)
+                self._canvas.Refresh()
+            else:
+                print(f"shape: {shape_name} creates null Object")
+
+        except ShapeNotExistException as e:
+            print(f"no shape found: {shape_name}")
 
     def move_selected_shapes(self):
         self._selections.action_on('add_to_pos', [self._mst.mouse_move_diff * self._view.zoom.reciprocal])

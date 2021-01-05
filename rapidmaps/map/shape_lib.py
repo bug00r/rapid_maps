@@ -74,6 +74,7 @@ class ShapeEntry(object):
         self._param = param
         self._name = name
         self._shape = None
+        self._shape_factory = None
 
     @property
     def name(self) -> str:
@@ -90,6 +91,14 @@ class ShapeEntry(object):
     @shape.setter
     def shape(self, new_shape: Shape):
         self._shape = new_shape
+
+    @property
+    def shape_factory(self):
+        return self._shape_factory
+
+    @shape_factory.setter
+    def shape_factory(self, shape_factory: ShapeFactory):
+        self._shape_factory = shape_factory
 
 
 class ShapeEntryMetaWrapper(object):
@@ -192,6 +201,7 @@ class ShapeLibraryLoader(object):
     def _create_shape(self, entry: ShapeEntry):
         if not entry.shape:
             entry.shape = self._shape_factory.create(entry.param)
+            entry.shape_factory = self._shape_factory
 
     def to_lib(self) -> ShapeLibrary:
         shapelib = ShapeLibrary()

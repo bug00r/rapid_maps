@@ -73,31 +73,12 @@
 											<border>5</border>
 											<object class="wxPanel" name="m_shape_lib">
 												<style>wxTAB_TRAVERSAL</style>
+												<enabled>0</enabled>
 												<object class="wxBoxSizer">
 													<orient>wxVERTICAL</orient>
 												</object>
 											</object>
 										</object>
-									</object>
-								</object>
-								<object class="sizeritem">
-									<option>0</option>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<object class="wxRadioBox" name="m_shapes">
-										<style>wxRA_SPECIFY_COLS</style>
-										<enabled>0</enabled>
-										<label>Shapes</label>
-										<selection>0</selection>
-										<content>
-											<item>Point</item>
-											<item>Quad</item>
-											<item>Circle</item>
-											<item>Woman</item>
-											<item>ImageQuad</item>
-											<item>ImageCircle</item>
-										</content>
-										<dimension>1</dimension>
 									</object>
 								</object>
 								<object class="sizeritem">

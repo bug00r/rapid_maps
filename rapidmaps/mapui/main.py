@@ -44,7 +44,7 @@ class RapidMapFrame(MainFrame):
 
             if shape_entry.shape:
                 size = shape_entry.shape.get_size()
-                thumb = wx.EmptyBitmapRGBA(size.width, size.height, alpha=1)
+                thumb = wx.Bitmap.FromRGBA(size.width, size.height, alpha=1)
                 thumb_dc = wx.MemoryDC(thumb)
                 shape_entry.shape.show_label(False)
                 shape_entry.shape.draw_by_dc(thumb_dc)
@@ -53,6 +53,7 @@ class RapidMapFrame(MainFrame):
                 c_btn.SetBitmap(thumb_img.ConvertToBitmap())
 
     def on_shape_btn_pressed(self, event):
+
         if self._cur_shape_btn:
             self._cur_shape_btn.SetValue(False)
 
@@ -80,7 +81,7 @@ class RapidMapFrame(MainFrame):
         self._ms.set(MapStateType.MOVING_MODE_UI, event.Selection == 0)
         self._ms.set(MapStateType.SELECTION_MODE_UI, event.Selection == 1)
         self._ms.set(MapStateType.ADDITION_MODE_UI, event.Selection == 2)
-        self.m_shapes.Enable(enable=self.should_add_entity())
+        self.m_shape_lib.Enable(enable=self.should_add_entity())
 
     def OnShapeChange(self, event):
         event.Skip()
@@ -113,8 +114,9 @@ class RapidMapFrame(MainFrame):
 
         if self._mst.was_selection_area_active:
             self._map.area_selection_at(self._mst.current_selected_area)
-        if self.should_add_entity():
-            self._map.add_shape(self.m_shapes.Selection, event.Position.x, event.Position.y)
+        if self.should_add_entity() and self._cur_shape_btn is not None:
+            self._map.add_shape_obj(self._all_shape_btns.get(self._cur_shape_btn, 'unknown'),
+                                    event.Position.x, event.Position.y)
 
         event.Skip()
 
