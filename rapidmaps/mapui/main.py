@@ -259,6 +259,7 @@ class RapidMapFrame(MainFrame):
 
     def canvasOnMouseWheel(self, event):
         if event.controlDown:
-            new_val = self.m_zoom.Value + (event.WheelRotation/100)
+            wheeldiff = 0.1 if event.shiftDown else 0.01
+            new_val = self.m_zoom.Value + (event.WheelRotation*wheeldiff)
             self.m_zoom.Value = min(max(new_val, self.m_zoom.Min), self.m_zoom.Max)
             self._do_zoom(self.m_zoom.Value)
