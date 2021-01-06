@@ -166,6 +166,7 @@ class RapidMapFrame(MainFrame):
                         pathname = fileDialog.GetPath()
                         self._map.set_background(wx.Image(pathname, wx.BITMAP_TYPE_ANY))
                         self._adjust_scrollbars()
+                        self.m_zoom.Value = 100
                     except IOError:
                         wx.LogError("Cannot open file '%s'." % pathname)
 
@@ -242,7 +243,6 @@ class RapidMapFrame(MainFrame):
         if self._map.bg_image:
             self._map.do_zoom(zoom_value)
             self._adjust_scrollbars()
-
 
     def OnMapZoom(self, event):
         self._do_zoom(event.Int)

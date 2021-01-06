@@ -227,17 +227,6 @@ class RapidMap(object):
     def shape_lib(self) -> ShapeLibrary:
         return self._shape_lib
 
-    def _refresh_view_state(self):
-        self._view.refresh_zoomed_vport()
-        zoomedview = self._view.viewport.zoomed
-        self._normalized = wx.Rect(zoomedview.x, zoomedview.y,
-                                 min(self._bg_image.GetSize().width if self._bg_bitmap else self._view.rsize.width,
-                                     zoomedview.width),
-                                 min(self._bg_image.GetSize().height if self._bg_bitmap else self._view.rsize.height,
-                                     zoomedview.height))
-        self._should_scale_up = (zoomedview.width < self._canvas.GetSize().width,
-                                 zoomedview.height < self._canvas.GetSize().height)
-
     def set_background(self, image: wx.Image):
         if image:
             self._bg_image = image
@@ -248,6 +237,7 @@ class RapidMap(object):
             self._view.viewport.base.width = self._canvas.GetSize().width
             self._view.viewport.base.height = self._canvas.GetSize().height
             self._view.zoom.factor = 1.0
+
             self._canvas.Refresh()
 
     def _realign_viewport_on_overflow(self):
@@ -278,6 +268,19 @@ class RapidMap(object):
         self._view.viewport.base.height = newsize.height
         self._refresh_view_state()
         self._realign_viewport_on_overflow()
+
+    def _refresh_view_state(self):
+        self._view.refresh_zoomed_vport()
+        zoomedview = self._view.viewport.zoomed
+
+        limit_width = self._bg_image.GetSize().width if self._bg_bitmap else self._view.rsize.width
+        limit_height = self._bg_image.GetSize().height if self._bg_bitmap else self._view.rsize.height
+
+        self._normalized = wx.Rect(zoomedview.x, zoomedview.y, min(limit_width, zoomedview.width),
+                                   min(limit_height, zoomedview.height))
+
+        self._should_scale_up = (zoomedview.width < self._canvas.GetSize().width and zoomedview.width < limit_width,
+                                 zoomedview.height < self._canvas.GetSize().height and zoomedview.height < limit_height)
 
     def _draw_background(self, dc):
         if self._bg_bitmap:
