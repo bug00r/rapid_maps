@@ -24,8 +24,12 @@ class RapidMapFrame(MainFrame):
         self._mst = self._map.mapstatetranslator
         self._shape_lib_groups = {}
         self._cur_shape_btn = None
+        self._cur_action_btn = self.m_move_btn
         self._all_shape_btns = {}
         self._init_shapes()
+        self.m_add_btn.SetBitmap(wx.Image('./resource/icon/addingcross.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
+        self.m_move_btn.SetBitmap(wx.Image('./resource/icon/map-location-solid.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
+        self.m_select_btn.SetBitmap(wx.Image('./resource/icon/hand_pointing_icon.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
 
     def _init_shapes(self):
         for shape_entry in self._shape_lib.get_shapes():
@@ -76,11 +80,15 @@ class RapidMapFrame(MainFrame):
         self.m_splitter1.SetSashPosition(b_pos + 1)
         self.m_splitter1.SetSashPosition(b_pos)
 
-    def on_mode_change(self, event):
-        # event.Skip()
-        self._ms.set(MapStateType.MOVING_MODE_UI, event.Selection == 0)
-        self._ms.set(MapStateType.SELECTION_MODE_UI, event.Selection == 1)
-        self._ms.set(MapStateType.ADDITION_MODE_UI, event.Selection == 2)
+    def on_mode_change_toggle(self, event):
+        if self._cur_action_btn:
+            self._cur_action_btn.SetValue(False)
+
+        self._cur_action_btn = event.EventObject
+
+        self._ms.set(MapStateType.MOVING_MODE_UI, self._cur_action_btn == self.m_move_btn)
+        self._ms.set(MapStateType.SELECTION_MODE_UI, self._cur_action_btn == self.m_select_btn)
+        self._ms.set(MapStateType.ADDITION_MODE_UI, self._cur_action_btn == self.m_add_btn)
         self.m_shape_lib.Enable(enable=self.should_add_entity())
 
     def OnShapeChange(self, event):

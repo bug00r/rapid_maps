@@ -27,7 +27,7 @@
 		</object>
 		<object class="wxSplitterWindow" name="m_splitter1">
 			<style>wxSP_3D</style>
-			<sashpos>160</sashpos>
+			<sashpos>200</sashpos>
 			<gravity>0</gravity>
 			<minsize>0</minsize>
 			<orientation>vertical</orientation>
@@ -46,18 +46,40 @@
 								<orient>wxVERTICAL</orient>
 								<object class="sizeritem">
 									<option>0</option>
-									<flag>wxALL|wxEXPAND</flag>
+									<flag>wxEXPAND</flag>
 									<border>5</border>
-									<object class="wxRadioBox" name="m_actions">
-										<style>wxRA_SPECIFY_COLS</style>
-										<label>Actions</label>
-										<selection>0</selection>
-										<content>
-											<item>Move</item>
-											<item>Select</item>
-											<item>Add</item>
-										</content>
-										<dimension>1</dimension>
+									<object class="wxGridSizer">
+										<rows>0</rows>
+										<cols>3</cols>
+										<vgap>0</vgap>
+										<hgap>0</hgap>
+										<object class="sizeritem">
+											<option>0</option>
+											<flag>wxALL</flag>
+											<border>5</border>
+											<object class="wxBitmapToggleButton" name="m_add_btn">
+												<bitmap />
+												<checked>0</checked>
+											</object>
+										</object>
+										<object class="sizeritem">
+											<option>0</option>
+											<flag>wxALL</flag>
+											<border>5</border>
+											<object class="wxBitmapToggleButton" name="m_select_btn">
+												<bitmap />
+												<checked>0</checked>
+											</object>
+										</object>
+										<object class="sizeritem">
+											<option>0</option>
+											<flag>wxALL</flag>
+											<border>5</border>
+											<object class="wxBitmapToggleButton" name="m_move_btn">
+												<bitmap />
+												<checked>1</checked>
+											</object>
+										</object>
 									</object>
 								</object>
 								<object class="sizeritem">

@@ -49,10 +49,20 @@ class MainFrame ( wx.Frame ):
 		self.m_panel3 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer31 = wx.BoxSizer( wx.VERTICAL )
 
-		m_actionsChoices = [ u"Move", u"Select", u"Add" ]
-		self.m_actions = wx.RadioBox( self.m_panel3, wx.ID_ANY, u"Actions", wx.DefaultPosition, wx.DefaultSize, m_actionsChoices, 1, wx.RA_SPECIFY_COLS )
-		self.m_actions.SetSelection( 0 )
-		bSizer31.Add( self.m_actions, 0, wx.ALL|wx.EXPAND, 5 )
+		gSizer1 = wx.GridSizer( 0, 3, 0, 0 )
+
+		self.m_add_btn = wx.BitmapToggleButton( self.m_panel3, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.m_add_btn, 0, wx.ALL, 5 )
+
+		self.m_select_btn = wx.BitmapToggleButton( self.m_panel3, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.m_select_btn, 0, wx.ALL, 5 )
+
+		self.m_move_btn = wx.BitmapToggleButton( self.m_panel3, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_move_btn.SetValue( True )
+		gSizer1.Add( self.m_move_btn, 0, wx.ALL, 5 )
+
+
+		bSizer31.Add( gSizer1, 0, wx.EXPAND, 5 )
 
 		colsizer = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Shapes" ), wx.VERTICAL )
 
@@ -167,7 +177,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel6.SetSizer( bSizer6 )
 		self.m_panel6.Layout()
 		bSizer6.Fit( self.m_panel6 )
-		self.m_splitter1.SplitVertically( self.m_scrolledWindow2, self.m_panel6, 160 )
+		self.m_splitter1.SplitVertically( self.m_scrolledWindow2, self.m_panel6, 200 )
 		bSizer1.Add( self.m_splitter1, 1, wx.EXPAND, 5 )
 
 
@@ -180,7 +190,9 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.Bind( wx.EVT_MENU, self.OnLoadMap, id = self.m_mi_loadmap.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnExit, id = self.m_mi_exit.GetId() )
-		self.m_actions.Bind( wx.EVT_RADIOBOX, self.on_mode_change )
+		self.m_add_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
+		self.m_select_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
+		self.m_move_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
 		self.m_name.Bind( wx.EVT_TEXT_ENTER, self.OnNameChanged )
 		self.m_size.Bind( wx.EVT_SCROLL, self.OnSizeChanged )
 		self.m_colour.Bind( wx.EVT_COLOURPICKER_CHANGED, self.OnColourChanged )
@@ -216,8 +228,10 @@ class MainFrame ( wx.Frame ):
 	def OnExit( self, event ):
 		event.Skip()
 
-	def on_mode_change( self, event ):
+	def on_mode_change_toggle( self, event ):
 		event.Skip()
+
+
 
 	def OnNameChanged( self, event ):
 		event.Skip()
@@ -280,7 +294,7 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def m_splitter1OnIdle( self, event ):
-		self.m_splitter1.SetSashPosition( 160 )
+		self.m_splitter1.SetSashPosition( 200 )
 		self.m_splitter1.Unbind( wx.EVT_IDLE )
 
 
