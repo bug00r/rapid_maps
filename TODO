@@ -1,8 +1,14 @@
 NEW:
-    - refactor map Algorithms and decrease redundancy
+    - Create Map Structure
+        - map names are unique
+    - Create Map Creation Processes
+        - new Map
+        - save Map
+        - edit Map
 
 
-
+IN PROCESS:
+    - refactoring, reduce redundancies
 
 DONE:
 1. adding statemachine

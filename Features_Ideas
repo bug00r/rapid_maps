@@ -1,5 +1,40 @@
-1. Layer based editing
-    - for grouping and hiding/transparency groups
-2. Context Popupmenü for easier/faster editing
-3. Preview/Play Window
-    - for Displaying results excluded some hidden parts
+MUST:
+    - Strukturing for multiple map handling
+        - Maps can scattered on different devices als persistent bundle of files
+               - Bundles are saved as Zip Archives and will be load in memory like:
+                    https://stackoverflow.com/questions/2463770/python-in-memory-zip-library
+                    https://docs.python.org/3/library/zipfile.html#zipfile-objects
+        - History of all created an used maps, if an existing one was opened edited it should got on top of History
+            - The History contains name of Map an Archive file
+    - A Single Map contains all needed resource like
+        - name
+        - Background and Shape Image Data and Meta Information
+            - Every Map is full featured usable Entity and independent from MapEditor in Reason of reducing Version
+              conflicts
+    - Masic Map Operations are: Create a new, load end edit existing one, save / overwrite Map
+    - Dimensions for Maps are usefull because you have to align all Shapes for correct size
+
+        - Can be edit by UI Control or measure by mouse selection
+
+        Example:  a Map has a resolution of 512x512 Pixel and shows a complete House. An Person Shap is very detailed
+                  with 1024x1024. the Person has an real world area of 1m² and the house of 90m². For this Reason
+                  we have to rescale the ratio based on real world meters to target pixels, without having resolution
+                  lost.
+
+                  example: the house is base also we have 512/90 as ration pixel/m² = 5,68(6) pixel for human
+
+                  THE DIMENSION CAN ONLY SET TO THE ROOT/BACKGROUND MAP DATA, BECAUSE ITS THE MAIN REFERENCE TO
+                  HANDLE DIMENSIONS
+
+                  (Maybe this can handled by different threads if useful)
+
+    - Drawing relative raster Layer based in Dimensions
+    - Layer based editing, will be handled as MapTree for easier handling(using anytree for this)
+        https://stackoverflow.com/questions/2358045/how-can-i-implement-a-tree-in-python
+        https://pypi.org/project/anytree/
+        - for grouping and hiding/transparency groups
+
+NICE TO HAVE:
+    - Context Popupmenü for easier/faster editing
+    - Preview/Play Window
+        - for Displaying results excluded some hidden parts
