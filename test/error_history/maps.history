@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<history>
+  <map name="Map Gareth" file="/home/bug0r/map_gareth.zip"/>
+  <map name="Map Werheim" file="/home/bug0r/map_werheim.zip"/>
+  <map name="Map Andergast" file="/home/bug0r/map_andergast.zip"/>
+  <map name="AddedMap1" file="/home/bug0r/AddedMap1.zip"/>
+  <map name="AddedMap2" file="/home/bug0r/AddedMap2.zip"/>
+  <map file="/home/bug0r/AddedMap3.zip"/>
+</history>

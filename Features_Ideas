@@ -1,5 +1,5 @@
 MUST:
-    - Strukturing for multiple map handling
+    - Structuring for multiple map handling
         - Maps can scattered on different devices als persistent bundle of files
                - Bundles are saved as Zip Archives and will be load in memory like:
                     https://stackoverflow.com/questions/2463770/python-in-memory-zip-library
@@ -11,8 +11,8 @@ MUST:
         - Background and Shape Image Data and Meta Information
             - Every Map is full featured usable Entity and independent from MapEditor in Reason of reducing Version
               conflicts
-    - Masic Map Operations are: Create a new, load end edit existing one, save / overwrite Map
-    - Dimensions for Maps are usefull because you have to align all Shapes for correct size
+    - Basic Map Operations are: Create a new, load end edit existing one, save / overwrite Map
+    - Dimensions for Maps are useful because you have to align all Shapes for correct size
 
         - Can be edit by UI Control or measure by mouse selection
 

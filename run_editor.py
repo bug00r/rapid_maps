@@ -14,6 +14,7 @@ class AppConfig(object):
     def __init__(self):
         self._app_path = Path()
         self._app_shape_path = self._app_path / 'shapes'
+        self._app_conf_path = self._app_path / 'conf'
 
     @property
     def path(self):
@@ -22,6 +23,10 @@ class AppConfig(object):
     @property
     def shape_path(self):
         return self._app_shape_path
+
+    @property
+    def conf_path(self):
+        return self._app_conf_path
 
 
 app = wx.App(redirect=False)  # Error messages go to popup window
