@@ -41,7 +41,7 @@ class RapidMapFrame(MainFrame):
                 colpane = self._shape_lib_groups[shape_entry.group]
 
             c_btn = wx.BitmapToggleButton(colpane.GetPane())
-            c_btn.SetBitmapMargins(0,0)
+
             c_btn.Bind(wx.EVT_TOGGLEBUTTON, self.on_shape_btn_pressed)
             self._all_shape_btns[c_btn] = shape_entry.name
             colpane.GetPane().GetSizer().Add(c_btn, 1, wx.ALL, 2)
