@@ -61,7 +61,10 @@ class RapidMapFrame(MainFrame):
         if self._cur_shape_btn:
             self._cur_shape_btn.SetValue(False)
 
-        self._cur_shape_btn = event.EventObject
+        if event.EventObject == self._cur_shape_btn and event.Int == 0:
+            self._cur_shape_btn = None
+        else:
+            self._cur_shape_btn = event.EventObject
 
     def _add_new_shape_group(self, group_name) -> wx.CollapsiblePane:
         new_cpane = wx.CollapsiblePane(self.m_shape_lib, wx.ID_ANY, f"{group_name}:", style=wx.CP_NO_TLW_RESIZE)
@@ -81,9 +84,7 @@ class RapidMapFrame(MainFrame):
         self.m_splitter1.SetSashPosition(b_pos)
 
     def on_mode_change_toggle(self, event):
-        if self._cur_action_btn:
-            self._cur_action_btn.SetValue(False)
-
+        self._cur_action_btn.SetValue(not self._cur_action_btn != event.EventObject)
         self._cur_action_btn = event.EventObject
 
         self._ms.set(MapStateType.MOVING_MODE_UI, self._cur_action_btn == self.m_move_btn)

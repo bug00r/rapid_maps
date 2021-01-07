@@ -105,6 +105,50 @@
 								</object>
 								<object class="sizeritem">
 									<option>0</option>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<object class="wxButton" name="m_clear">
+										<label>Clear Map</label>
+										<default>0</default>
+										<auth_needed>0</auth_needed>
+										<markup>0</markup>
+										<bitmap />
+									</object>
+								</object>
+								<object class="sizeritem">
+									<option>0</option>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<object class="wxButton" name="m_button2">
+										<label>Del Selected</label>
+										<default>0</default>
+										<auth_needed>0</auth_needed>
+										<markup>0</markup>
+										<bitmap />
+									</object>
+								</object>
+								<object class="sizeritem">
+									<option>0</option>
+									<flag>wxALL</flag>
+									<border>5</border>
+									<object class="wxStaticText" name="m_staticText3">
+										<label>Map Zoom</label>
+										<wrap>-1</wrap>
+									</object>
+								</object>
+								<object class="sizeritem">
+									<option>0</option>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<object class="wxSlider" name="m_zoom">
+										<style>wxSL_HORIZONTAL</style>
+										<value>100</value>
+										<min>1</min>
+										<max>400</max>
+									</object>
+								</object>
+								<object class="sizeritem">
+									<option>0</option>
 									<flag>wxEXPAND | wxALL</flag>
 									<border>5</border>
 									<object class="wxPanel" name="m_panel31">
@@ -199,50 +243,6 @@
 												</object>
 											</object>
 										</object>
-									</object>
-								</object>
-								<object class="sizeritem">
-									<option>0</option>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<object class="wxButton" name="m_clear">
-										<label>Clear Map</label>
-										<default>0</default>
-										<auth_needed>0</auth_needed>
-										<markup>0</markup>
-										<bitmap />
-									</object>
-								</object>
-								<object class="sizeritem">
-									<option>0</option>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<object class="wxButton" name="m_button2">
-										<label>Del Selected</label>
-										<default>0</default>
-										<auth_needed>0</auth_needed>
-										<markup>0</markup>
-										<bitmap />
-									</object>
-								</object>
-								<object class="sizeritem">
-									<option>0</option>
-									<flag>wxALL</flag>
-									<border>5</border>
-									<object class="wxStaticText" name="m_staticText3">
-										<label>Map Zoom</label>
-										<wrap>-1</wrap>
-									</object>
-								</object>
-								<object class="sizeritem">
-									<option>0</option>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<object class="wxSlider" name="m_zoom">
-										<style>wxSL_HORIZONTAL</style>
-										<value>100</value>
-										<min>1</min>
-										<max>400</max>
 									</object>
 								</object>
 							</object>

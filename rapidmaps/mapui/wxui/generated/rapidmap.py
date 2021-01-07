@@ -80,6 +80,20 @@ class MainFrame ( wx.Frame ):
 
 		bSizer31.Add( colsizer, 1, wx.EXPAND, 5 )
 
+		self.m_clear = wx.Button( self.m_panel3, wx.ID_ANY, u"Clear Map", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer31.Add( self.m_clear, 0, wx.ALL|wx.EXPAND, 5 )
+
+		self.m_button2 = wx.Button( self.m_panel3, wx.ID_ANY, u"Del Selected", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer31.Add( self.m_button2, 0, wx.ALL|wx.EXPAND, 5 )
+
+		self.m_staticText3 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Map Zoom", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText3.Wrap( -1 )
+
+		bSizer31.Add( self.m_staticText3, 0, wx.ALL, 5 )
+
+		self.m_zoom = wx.Slider( self.m_panel3, wx.ID_ANY, 100, 1, 400, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		bSizer31.Add( self.m_zoom, 0, wx.ALL|wx.EXPAND, 5 )
+
 		self.m_panel31 = wx.Panel( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer4 = wx.BoxSizer( wx.VERTICAL )
 
@@ -123,20 +137,6 @@ class MainFrame ( wx.Frame ):
 		self.m_panel31.Layout()
 		bSizer4.Fit( self.m_panel31 )
 		bSizer31.Add( self.m_panel31, 0, wx.EXPAND |wx.ALL, 5 )
-
-		self.m_clear = wx.Button( self.m_panel3, wx.ID_ANY, u"Clear Map", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer31.Add( self.m_clear, 0, wx.ALL|wx.EXPAND, 5 )
-
-		self.m_button2 = wx.Button( self.m_panel3, wx.ID_ANY, u"Del Selected", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer31.Add( self.m_button2, 0, wx.ALL|wx.EXPAND, 5 )
-
-		self.m_staticText3 = wx.StaticText( self.m_panel3, wx.ID_ANY, u"Map Zoom", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText3.Wrap( -1 )
-
-		bSizer31.Add( self.m_staticText3, 0, wx.ALL, 5 )
-
-		self.m_zoom = wx.Slider( self.m_panel3, wx.ID_ANY, 100, 1, 400, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
-		bSizer31.Add( self.m_zoom, 0, wx.ALL|wx.EXPAND, 5 )
 
 
 		self.m_panel3.SetSizer( bSizer31 )
@@ -193,14 +193,14 @@ class MainFrame ( wx.Frame ):
 		self.m_add_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
 		self.m_select_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
 		self.m_move_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
+		self.m_clear.Bind( wx.EVT_BUTTON, self.OnClearMap )
+		self.m_button2.Bind( wx.EVT_BUTTON, self.OnRemoveSelected )
+		self.m_zoom.Bind( wx.EVT_SCROLL_CHANGED, self.OnMapZoom )
 		self.m_name.Bind( wx.EVT_TEXT_ENTER, self.OnNameChanged )
 		self.m_size.Bind( wx.EVT_SCROLL, self.OnSizeChanged )
 		self.m_colour.Bind( wx.EVT_COLOURPICKER_CHANGED, self.OnColourChanged )
 		self.m_rotation.Bind( wx.EVT_SCROLL, self.OnRotationChanged )
 		self.m_text_size.Bind( wx.EVT_SCROLL, self.OnTextSizeChanged )
-		self.m_clear.Bind( wx.EVT_BUTTON, self.OnClearMap )
-		self.m_button2.Bind( wx.EVT_BUTTON, self.OnRemoveSelected )
-		self.m_zoom.Bind( wx.EVT_SCROLL_CHANGED, self.OnMapZoom )
 		self.canvas.Bind( wx.EVT_KEY_DOWN, self.canvasOnKeyDown )
 		self.canvas.Bind( wx.EVT_KEY_UP, self.canvasOnKeyUp )
 		self.canvas.Bind( wx.EVT_LEFT_DOWN, self.canvasOnLeftDown )
@@ -233,6 +233,15 @@ class MainFrame ( wx.Frame ):
 
 
 
+	def OnClearMap( self, event ):
+		event.Skip()
+
+	def OnRemoveSelected( self, event ):
+		event.Skip()
+
+	def OnMapZoom( self, event ):
+		event.Skip()
+
 	def OnNameChanged( self, event ):
 		event.Skip()
 
@@ -246,15 +255,6 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnTextSizeChanged( self, event ):
-		event.Skip()
-
-	def OnClearMap( self, event ):
-		event.Skip()
-
-	def OnRemoveSelected( self, event ):
-		event.Skip()
-
-	def OnMapZoom( self, event ):
 		event.Skip()
 
 	def canvasOnKeyDown( self, event ):
