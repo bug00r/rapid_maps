@@ -4,9 +4,14 @@ from wx import Size, Brush, Colour, BLACK, GREEN
 from typing import Any
 
 
+class ShapeParameter(object):
+    pass
+
+
 class Shape(object):
 
     def __init__(self):
+        self._param = None
         self._pos = wxPoint(0, 0)
         self._size = Size(20, 20)
         self._color = BLACK
@@ -17,6 +22,14 @@ class Shape(object):
         self._angle_changed = False
         self._selected = False
         self._show_label = True
+
+    @property
+    def param(self):
+        return self._param
+
+    @param.setter
+    def param(self, param: ShapeParameter):
+        self._param = param
 
     def show_label(self, show: bool):
         self._show_label = show

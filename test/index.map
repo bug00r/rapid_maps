@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<map>
+  <shape type="image" name="Woman" group="Persons">
+    <param value="persons/woman.png" name="file"/>
+    <pos x="0" y="0"/>
+    <size w="114" h="102"/>
+    <rotation angle="0"/>
+    <label value="Woman"/>
+  </shape>
+  <shape type="image" name="Warrior" group="Persons">
+    <param value="persons/warrior.png" name="file"/>
+    <pos x="0" y="0"/>
+    <size w="223" h="211"/>
+    <rotation angle="0"/>
+    <label value="Warrior"/>
+  </shape>
+  <shape type="image" name="Monk" group="Persons">
+    <param value="persons/monk.png" name="file"/>
+    <pos x="0" y="0"/>
+    <size w="221" h="206"/>
+    <rotation angle="0"/>
+    <label value="Monk"/>
+  </shape>
+  <shape type="rectangle" name="Rectangle" group="Objects">
+    <param value="20" name="width"/>
+    <param value="20" name="height"/>
+    <param value="RED" name="color"/>
+  </shape>
+  <shape type="triangle" name="Triangle" group="Objects">
+    <param name="p1">
+      <param name="x" value="0"/>
+      <param name="y" value="20"/>
+    </param>
+    <param name="p2">
+      <param name="x" value="21"/>
+      <param name="y" value="21"/>
+    </param>
+    <param name="p3">
+      <param name="x" value="11"/>
+      <param name="y" value="0"/>
+    </param>
+    <param value="BLUE" name="color"/>
+  </shape>
+</map>

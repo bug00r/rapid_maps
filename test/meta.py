@@ -64,3 +64,7 @@ class MyTestCase(unittest.TestCase):
         mh = mh_loader.load()
         self.assertRaises(MapNotExistException, mh.get, 'error')
         self.assertRaises(MapExistException, mh.add, Map("AddedMap1", Path("/home/bug0r/AddedMap1.zip")))
+
+    def test_invalid_map_creation(self):
+        self.assertRaises(MissingMapNameException, Map, None, Path("/home/bug0r/AddedMap1.zip"))
+        self.assertRaises(MissingMapNameException, Map, "", Path("/home/bug0r/AddedMap1.zip"))

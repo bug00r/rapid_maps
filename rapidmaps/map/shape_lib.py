@@ -2,7 +2,7 @@ from pathlib import Path
 from lxml import etree
 import wx
 
-from rapidmaps.map.shape import Shape, ImageShape
+from rapidmaps.map.shape import Shape, ImageShape, ShapeParameter
 
 
 class ShapeExistException(Exception):
@@ -10,10 +10,6 @@ class ShapeExistException(Exception):
 
 
 class ShapeNotExistException(Exception):
-    pass
-
-
-class ShapeParameter(object):
     pass
 
 
@@ -66,7 +62,10 @@ class ShapeFactory(object):
         creator_clazz = self.creator_pool.get(param.type, UnknownShapeCreator)
         creator_obj = creator_clazz(param)
         creator_obj.set_lib_path(self._lib_path)
-        return creator_obj.create()
+        new_shape = creator_obj.create()
+        if new_shape:
+            new_shape.param = param
+        return new_shape
 
 
 class ShapeEntry(object):

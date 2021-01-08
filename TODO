@@ -4,7 +4,12 @@ NEW:
     - Create Map Creation Processes
         - new Map
         - save Map
+            - in first Version we create a zip file with only an xml map descriptor
+            - in second version we will save all images into the zip file too
+                   !!!! wx.Python has No FileOutputStream !!!!
+                   save image: img.SaveFile('saved.png', wx.BITMAP_TYPE_PNG)
         - edit Map
+        - creation of UI Elements to handle this Process
 
 
 IN PROCESS:

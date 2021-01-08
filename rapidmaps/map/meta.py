@@ -14,8 +14,14 @@ class InvalidMapDataException(Exception):
     pass
 
 
+class MissingMapNameException(Exception):
+    pass
+
+
 class Map(object):
     def __init__(self, name: str, archive: Path):
+        if not name or len(name) == 0:
+            raise MissingMapNameException(f"No Map name found")
         self._name = name
         self._ar_path = archive
 
@@ -24,8 +30,15 @@ class Map(object):
         return self._name
 
     @property
-    def archive_path(self):
+    def archive_path(self) -> Path:
         return self._ar_path
+
+    @archive_path.setter
+    def archive_path(self, archive_path: Path):
+        self._ar_path = archive_path
+
+    def is_new(self):
+        return self._ar_path is None
 
 
 class MapWrapper(object):
