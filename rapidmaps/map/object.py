@@ -1,14 +1,19 @@
 import wx
-from lxml import etree
 import zipfile
 
+from lxml import etree
+from pathlib import Path
+
 from rapidmaps.map.meta import Map
-from rapidmaps.map.shape import ShapeParameter
+from rapidmaps.map.shape import ShapeParameter, Shape
+from rapidmaps.map.shape_lib import XmlTagToParameterTransformator, ShapeFactory
 
 
 class MapBackground(object):
     def __init__(self):
         self._image = None
+        self._path = None
+        self._bitmap = None
 
     @property
     def image(self) -> wx.Image:
@@ -17,6 +22,22 @@ class MapBackground(object):
     @image.setter
     def image(self, new_image: wx.Image):
         self._image = new_image
+
+    @property
+    def path(self) -> Path:
+        return self._path
+
+    @path.setter
+    def path(self, _path: Path):
+        self._path = _path
+
+    @property
+    def bitmap(self):
+        used_bitmap = self._bitmap
+        if used_bitmap is None and self._image is not None:
+            used_bitmap = self._image.ConvertToBitmap()
+            self._bitmap = used_bitmap
+        return used_bitmap
 
 
 class MapObject(object):
@@ -42,8 +63,22 @@ class MapObject(object):
 
 class MapToObjectTransformator(object):
 
-    def __init__(self, _map: Map):
+    def __init__(self, _map: Map, shape_lib_path: Path):
         self._map = _map
+        self._shape_factory = ShapeFactory(shape_lib_path)
+
+    def _xml_to_shape_reinit(self, xmlelement, shape: Shape):
+        if shape is not None and xmlelement is not None:
+            for child in xmlelement:
+                tag_name = child.tag
+                if tag_name == 'pos':
+                    shape.set_pos(wx.Point(int(child.get('x')), int(child.get('y'))))
+                elif tag_name == 'size':
+                    shape.set_size(wx.Size(int(child.get('w')), int(child.get('h'))))
+                elif tag_name == 'rotation':
+                    shape.set_angle(int(child.get('angle')))
+                elif tag_name == 'label':
+                    shape.set_angle(child.get('value'))
 
     def transform(self) -> MapObject:
         """TODO reading zip file from Map and fill MapObject with parameter and Background,
@@ -55,11 +90,17 @@ class MapToObjectTransformator(object):
                 root = etree.XML(myfile.read())
 
         for shape in root.xpath('shape'):
-            print(etree.tostring(shape, pretty_print=True))
-            for param in shape.xpath('param'):
-                print("----", etree.tostring(param, pretty_print=True))
+            shape_param = XmlTagToParameterTransformator(shape).transform()
+            shape_obj = self._shape_factory.create(shape_param)
+            self._xml_to_shape_reinit(shape, shape_obj)
+            map_obj.shape_obj.append(shape_obj)
 
-        #CONTINUE HERE!!!!
+        bg = root.xpath('background')[0]
+        bg_path_str = bg.attrib.get('file')
+        bg_path = Path(bg_path_str)
+        bg_image = wx.Image(bg_path_str, wx.BITMAP_TYPE_ANY)
+        map_obj.background.path = bg_path
+        map_obj.background.image = bg_image
 
         return map_obj
 
@@ -95,6 +136,12 @@ class MapObjectWriter(object):
         as reason of a new map, rise an exception, catch them and edit path with dialog"""
         root = etree.XML(self.file_skeleton)
         map_tree = etree.ElementTree(root)
+
+        root.attrib['name'] = self._map_object.map.name
+
+        background = etree.Element('background')
+        background.attrib['file'] = str(self._map_object.background.path.absolute())
+        root.append(background)
 
         for shape in self._map_object.shape_obj:
             shape_tag = etree.Element('shape')

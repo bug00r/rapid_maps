@@ -154,6 +154,34 @@ class ShapeLibrary(object):
         return self._shape_meta
 
 
+class XmlTagToParameterTransformator(object):
+
+    def __init__(self, xmlelement):
+        self._xml_elem = xmlelement
+
+    def _xml_to_param(self, xmlelement) -> ShapeParameter:
+        newparam = ShapeParameter()
+        setattr(newparam, 'name', xmlelement.get('name', default='UNKNOWN'))
+        setattr(newparam, 'type', xmlelement.get('type', default='UNKNOWN'))
+        for param in xmlelement.xpath('./param'):
+            setattr(newparam, param.get('name'), self._examine_param_value(param))
+        return newparam
+
+    def _examine_param_value(self, param):
+        subparam = param.xpath('./param')
+        if subparam:
+            newparam = ShapeParameter()
+            for param in subparam:
+                setattr(newparam, param.get('name'), self._examine_param_value(param))
+            result = newparam
+        else:
+            result = param.get('value')
+        return result
+
+    def transform(self):
+        return self._xml_to_param(self._xml_elem)
+
+
 class ShapeLibraryLoader(object):
 
     def __init__(self, library_path: Path):
@@ -172,30 +200,11 @@ class ShapeLibraryLoader(object):
             lib.add(self._xml_element_to_shape_entry(child))
 
     def _xml_element_to_shape_entry(self, xmlelement) -> ShapeEntry:
-        param = self._xml_to_param(xmlelement)
+        param = XmlTagToParameterTransformator(xmlelement).transform()
+        setattr(param, 'group', xmlelement.getparent().get('name', default='UNKNOWN'))
         new_shape_entry = ShapeEntry(xmlelement.get('name'), param)
         self._create_shape(new_shape_entry)
         return new_shape_entry
-
-    def _xml_to_param(self, xmlelement) -> ShapeParameter:
-        newparam = ShapeParameter()
-        setattr(newparam, 'name', xmlelement.get('name', default='UNKNOWN'))
-        setattr(newparam, 'type', xmlelement.get('type', default='UNKNOWN'))
-        setattr(newparam, 'group', xmlelement.getparent().get('name', default='UNKNOWN'))
-        for param in xmlelement.xpath('./param'):
-            setattr(newparam, param.get('name'), self._examine_param_value(param))
-        return newparam
-
-    def _examine_param_value(self, param):
-        subparam = param.xpath('./param')
-        if subparam:
-            newparam = ShapeParameter()
-            for param in subparam:
-                setattr(newparam, param.get('name'), self._examine_param_value(param))
-            result = newparam
-        else:
-            result = param.get('value')
-        return result
 
     def _create_shape(self, entry: ShapeEntry):
         if not entry.shape:
