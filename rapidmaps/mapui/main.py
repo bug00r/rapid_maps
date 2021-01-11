@@ -272,3 +272,18 @@ class RapidMapFrame(MainFrame):
             new_val = self.m_zoom.Value + (event.WheelRotation*wheeldiff)
             self.m_zoom.Value = min(max(new_val, self.m_zoom.Min), self.m_zoom.Max)
             self._do_zoom(self.m_zoom.Value)
+
+    def on_map_add_new(self, event):
+        self.m_map_history_list.Append('test')
+
+    def on_map_edit(self, event):
+        pass
+
+    def on_map_delete(self, event):
+        self.m_map_history_list.Delete(self.m_map_history_list.Selection)
+        self.m_map_del_btn.Enable(False)
+        self.m_map_edit_btn.Enable(False)
+
+    def on_select_map(self, event):
+        self.m_map_del_btn.Enable(True)
+        self.m_map_edit_btn.Enable(True)

@@ -49,24 +49,53 @@ class MainFrame ( wx.Frame ):
 		self.m_panel3 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer31 = wx.BoxSizer( wx.VERTICAL )
 
-		gSizer1 = wx.GridSizer( 0, 3, 0, 0 )
+		sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Map History" ), wx.VERTICAL )
 
-		self.m_add_btn = wx.BitmapToggleButton( self.m_panel3, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer1.Add( self.m_add_btn, 0, wx.ALL, 5 )
+		bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
 
-		self.m_select_btn = wx.BitmapToggleButton( self.m_panel3, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer1.Add( self.m_select_btn, 0, wx.ALL, 5 )
+		self.m_map_add_btn = wx.BitmapButton( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0 )
+		bSizer10.Add( self.m_map_add_btn, 0, wx.ALL, 5 )
 
-		self.m_move_btn = wx.BitmapToggleButton( self.m_panel3, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_move_btn.SetValue( True )
-		gSizer1.Add( self.m_move_btn, 0, wx.ALL, 5 )
+		self.m_map_edit_btn = wx.BitmapButton( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0 )
+		self.m_map_edit_btn.Enable( False )
+
+		bSizer10.Add( self.m_map_edit_btn, 0, wx.ALL, 5 )
+
+		self.m_map_del_btn = wx.BitmapButton( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0 )
+		self.m_map_del_btn.Enable( False )
+
+		bSizer10.Add( self.m_map_del_btn, 0, wx.ALL, 5 )
 
 
-		bSizer31.Add( gSizer1, 0, wx.EXPAND, 5 )
+		sbSizer2.Add( bSizer10, 0, wx.EXPAND, 5 )
+
+		m_map_history_listChoices = []
+		self.m_map_history_list = wx.ListBox( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_map_history_listChoices, wx.LB_NEEDED_SB|wx.LB_SINGLE|wx.LB_SORT )
+		self.m_map_history_list.SetMinSize( wx.Size( 50,150 ) )
+
+		sbSizer2.Add( self.m_map_history_list, 0, wx.ALL|wx.EXPAND, 5 )
+
+
+		bSizer31.Add( sbSizer2, 1, wx.EXPAND, 5 )
 
 		colsizer = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Shapes" ), wx.VERTICAL )
 
-		self.m_shape_lib = wx.Panel( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer12 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_add_btn = wx.BitmapToggleButton( colsizer.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer12.Add( self.m_add_btn, 0, wx.ALL, 5 )
+
+		self.m_select_btn = wx.BitmapToggleButton( colsizer.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer12.Add( self.m_select_btn, 0, wx.ALL, 5 )
+
+		self.m_move_btn = wx.BitmapToggleButton( colsizer.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_move_btn.SetValue( True )
+		bSizer12.Add( self.m_move_btn, 0, wx.ALL, 5 )
+
+
+		colsizer.Add( bSizer12, 0, wx.EXPAND, 5 )
+
+		self.m_shape_lib = wx.Panel( colsizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		self.m_shape_lib.Enable( False )
 
 		m_shape_lib_sizer = wx.BoxSizer( wx.VERTICAL )
@@ -78,7 +107,7 @@ class MainFrame ( wx.Frame ):
 		colsizer.Add( self.m_shape_lib, 1, wx.EXPAND |wx.ALL, 5 )
 
 
-		bSizer31.Add( colsizer, 1, wx.EXPAND, 5 )
+		bSizer31.Add( colsizer, 0, wx.EXPAND, 5 )
 
 		self.m_clear = wx.Button( self.m_panel3, wx.ID_ANY, u"Clear Map", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer31.Add( self.m_clear, 0, wx.ALL|wx.EXPAND, 5 )
@@ -190,6 +219,10 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.Bind( wx.EVT_MENU, self.OnLoadMap, id = self.m_mi_loadmap.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnExit, id = self.m_mi_exit.GetId() )
+		self.m_map_add_btn.Bind( wx.EVT_BUTTON, self.on_map_add_new )
+		self.m_map_edit_btn.Bind( wx.EVT_BUTTON, self.on_map_edit )
+		self.m_map_del_btn.Bind( wx.EVT_BUTTON, self.on_map_delete )
+		self.m_map_history_list.Bind( wx.EVT_LISTBOX, self.on_select_map )
 		self.m_add_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
 		self.m_select_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
 		self.m_move_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
@@ -226,6 +259,18 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnExit( self, event ):
+		event.Skip()
+
+	def on_map_add_new( self, event ):
+		event.Skip()
+
+	def on_map_edit( self, event ):
+		event.Skip()
+
+	def on_map_delete( self, event ):
+		event.Skip()
+
+	def on_select_map( self, event ):
 		event.Skip()
 
 	def on_mode_change_toggle( self, event ):
