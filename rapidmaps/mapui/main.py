@@ -27,12 +27,24 @@ class RapidMapFrame(MainFrame):
         self._cur_action_btn = self.m_move_btn
         self._all_shape_btns = {}
         self._init_shapes()
-        self.m_add_btn.SetBitmap(wx.Image('./resource/icon/add.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
-        self.m_move_btn.SetBitmap(wx.Image('./resource/icon/move.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
-        self.m_select_btn.SetBitmap(wx.Image('./resource/icon/select.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
-        self.m_map_del_btn.SetBitmap(wx.Image('./resource/icon/delete.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
-        self.m_map_edit_btn.SetBitmap(wx.Image('./resource/icon/edit.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
-        self.m_map_add_btn.SetBitmap(wx.Image('./resource/icon/add.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
+
+        self._init_icons([(self.m_add_btn, 'add'), (self.m_move_btn, 'move'), (self.m_select_btn, 'select'),
+                         (self.m_map_del_btn, 'delete'), (self.m_map_edit_btn, 'edit'), (self.m_map_add_btn, 'add')])
+
+        self.m_map_history_list.InsertColumn(0, "Name")
+        self._recalc_map_list_size()
+
+    def on_left_navi_resize_done(self, event):
+        self._recalc_map_list_size()
+
+    def _recalc_map_list_size(self):
+        list_size = self.m_splitter1.GetSashPosition() - self.m_splitter1.GetSashSize() - 15
+        self.m_map_history_list.SetMaxSize(wx.Size(list_size, 150))
+        self.m_map_history_list.SetColumnWidth(0, list_size)
+
+    def _init_icons(self, element_list):
+        for element, icon in element_list:
+            element.SetBitmap(wx.Image(f"./resource/icon/{icon}.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap())
 
     def _init_shapes(self):
         for shape_entry in self._shape_lib.get_shapes():
@@ -277,15 +289,28 @@ class RapidMapFrame(MainFrame):
             self._do_zoom(self.m_zoom.Value)
 
     def on_map_add_new(self, event):
-        self.m_map_history_list.Append('test')
+        with wx.TextEntryDialog(self, "Enter new Map's Name") as newMapDialog:
+            if newMapDialog.ShowModal() == wx.ID_CANCEL:
+                event.Skip()
+            else:
+                new_map_name = newMapDialog.GetValue()
+                if len(new_map_name) > 0:
+                    self.m_map_history_list.InsertItem(0, new_map_name)
+                    any_seleted = self.m_map_history_list.GetFirstSelected() != -1
+                    self.m_map_del_btn.Enable(any_seleted)
+                    self.m_map_edit_btn.Enable(any_seleted)
+                else:
+                    wx.MessageDialog(self, "Unusable Map Name!!",
+                                     style=wx.OK_DEFAULT | wx.ICON_ERROR).ShowModal()
 
     def on_map_edit(self, event):
         pass
 
     def on_map_delete(self, event):
-        self.m_map_history_list.Delete(self.m_map_history_list.Selection)
-        self.m_map_del_btn.Enable(False)
-        self.m_map_edit_btn.Enable(False)
+        self.m_map_history_list.DeleteItem(self.m_map_history_list.GetFirstSelected())
+        any_seleted = self.m_map_history_list.GetFirstSelected() != -1
+        self.m_map_del_btn.Enable(any_seleted)
+        self.m_map_edit_btn.Enable(any_seleted)
 
     def on_select_map(self, event):
         self.m_map_del_btn.Enable(True)

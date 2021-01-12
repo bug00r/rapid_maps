@@ -67,16 +67,21 @@ class MainFrame ( wx.Frame ):
 		bSizer10.Add( self.m_map_del_btn, 0, wx.ALL, 5 )
 
 
-		sbSizer2.Add( bSizer10, 0, wx.EXPAND, 5 )
+		sbSizer2.Add( bSizer10, 1, wx.EXPAND, 5 )
 
-		m_map_history_listChoices = []
-		self.m_map_history_list = wx.ListBox( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_map_history_listChoices, wx.LB_NEEDED_SB|wx.LB_SINGLE|wx.LB_SORT )
-		self.m_map_history_list.SetMinSize( wx.Size( 50,150 ) )
+		bSizer13 = wx.BoxSizer( wx.VERTICAL )
 
-		sbSizer2.Add( self.m_map_history_list, 0, wx.ALL|wx.EXPAND, 5 )
+		self.m_map_history_list = wx.ListCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_HRULES|wx.LC_LIST|wx.LC_NO_HEADER|wx.LC_REPORT|wx.LC_SINGLE_SEL )
+		self.m_map_history_list.SetMinSize( wx.Size( -1,150 ) )
+		self.m_map_history_list.SetMaxSize( wx.Size( 100,-1 ) )
+
+		bSizer13.Add( self.m_map_history_list, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-		bSizer31.Add( sbSizer2, 1, wx.EXPAND, 5 )
+		sbSizer2.Add( bSizer13, 0, wx.EXPAND, 5 )
+
+
+		bSizer31.Add( sbSizer2, 0, wx.EXPAND, 5 )
 
 		colsizer = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Shapes" ), wx.VERTICAL )
 
@@ -104,7 +109,7 @@ class MainFrame ( wx.Frame ):
 		self.m_shape_lib.SetSizer( m_shape_lib_sizer )
 		self.m_shape_lib.Layout()
 		m_shape_lib_sizer.Fit( self.m_shape_lib )
-		colsizer.Add( self.m_shape_lib, 1, wx.EXPAND |wx.ALL, 5 )
+		colsizer.Add( self.m_shape_lib, 0, 0, 5 )
 
 
 		bSizer31.Add( colsizer, 0, wx.EXPAND, 5 )
@@ -171,7 +176,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel3.SetSizer( bSizer31 )
 		self.m_panel3.Layout()
 		bSizer31.Fit( self.m_panel3 )
-		bSizer5.Add( self.m_panel3, 0, wx.EXPAND |wx.ALL, 5 )
+		bSizer5.Add( self.m_panel3, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 		self.m_scrolledWindow2.SetSizer( bSizer5 )
@@ -219,10 +224,11 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.Bind( wx.EVT_MENU, self.OnLoadMap, id = self.m_mi_loadmap.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnExit, id = self.m_mi_exit.GetId() )
+		self.m_splitter1.Bind( wx.EVT_SPLITTER_SASH_POS_CHANGED, self.on_left_navi_resize_done )
 		self.m_map_add_btn.Bind( wx.EVT_BUTTON, self.on_map_add_new )
 		self.m_map_edit_btn.Bind( wx.EVT_BUTTON, self.on_map_edit )
 		self.m_map_del_btn.Bind( wx.EVT_BUTTON, self.on_map_delete )
-		self.m_map_history_list.Bind( wx.EVT_LISTBOX, self.on_select_map )
+		self.m_map_history_list.Bind( wx.EVT_LIST_ITEM_SELECTED, self.on_select_map )
 		self.m_add_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
 		self.m_select_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
 		self.m_move_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
@@ -259,6 +265,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnExit( self, event ):
+		event.Skip()
+
+	def on_left_navi_resize_done( self, event ):
 		event.Skip()
 
 	def on_map_add_new( self, event ):

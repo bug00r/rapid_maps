@@ -37,7 +37,7 @@
 				<object class="wxBoxSizer">
 					<orient>wxVERTICAL</orient>
 					<object class="sizeritem">
-						<option>0</option>
+						<option>1</option>
 						<flag>wxEXPAND | wxALL</flag>
 						<border>5</border>
 						<object class="wxPanel" name="m_panel3">
@@ -45,14 +45,14 @@
 							<object class="wxBoxSizer">
 								<orient>wxVERTICAL</orient>
 								<object class="sizeritem">
-									<option>1</option>
+									<option>0</option>
 									<flag>wxEXPAND</flag>
 									<border>5</border>
 									<object class="wxStaticBoxSizer">
 										<orient>wxVERTICAL</orient>
 										<label>Map History</label>
 										<object class="sizeritem">
-											<option>0</option>
+											<option>1</option>
 											<flag>wxEXPAND</flag>
 											<border>5</border>
 											<object class="wxBoxSizer">
@@ -93,11 +93,18 @@
 										</object>
 										<object class="sizeritem">
 											<option>0</option>
-											<flag>wxALL|wxEXPAND</flag>
+											<flag>wxEXPAND</flag>
 											<border>5</border>
-											<object class="wxListBox" name="m_map_history_list">
-												<style>wxLB_NEEDED_SB|wxLB_SINGLE|wxLB_SORT</style>
-												<content />
+											<object class="wxBoxSizer">
+												<orient>wxVERTICAL</orient>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<object class="wxListCtrl" name="m_map_history_list">
+														<style>wxLC_HRULES|wxLC_LIST|wxLC_NO_HEADER|wxLC_REPORT|wxLC_SINGLE_SEL</style>
+													</object>
+												</object>
 											</object>
 										</object>
 									</object>
@@ -145,8 +152,8 @@
 											</object>
 										</object>
 										<object class="sizeritem">
-											<option>1</option>
-											<flag>wxEXPAND | wxALL</flag>
+											<option>0</option>
+											<flag></flag>
 											<border>5</border>
 											<object class="wxPanel" name="m_shape_lib">
 												<style>wxTAB_TRAVERSAL</style>
