@@ -3,6 +3,7 @@ from wx import BG_STYLE_PAINT, Exit, AutoBufferedPaintDC as abDC
 from rapidmaps.mapui.wxui.generated.rapidmap import MainFrame
 from rapidmaps.map.state import MapStateType
 from rapidmaps.map.shape import *
+from rapidmaps.map.meta import MapHistoryLoader, MapHistoryWriter, Map
 from rapidmaps.map import RapidMap
 
 
@@ -17,6 +18,7 @@ class RapidMapFrame(MainFrame):
         self._appconfig = wx.GetApp().app_conf
         self.canvas.SetBackgroundStyle(BG_STYLE_PAINT)
         self._map = RapidMap(self.canvas, self._appconfig)
+        self._map_history = MapHistoryLoader(self._appconfig.conf_path).load()
         self._shape_lib = self._map.shape_lib
         self.__shape_obj = self._map.map_objects
         self._selections = self._map.selections
@@ -33,6 +35,11 @@ class RapidMapFrame(MainFrame):
 
         self.m_map_history_list.InsertColumn(0, "Name")
         self._recalc_map_list_size()
+        self._init_map_history()
+
+    def _init_map_history(self):
+        for index, map in enumerate(self._map_history.get_maps()):
+            self.m_map_history_list.InsertItem(index, map.name)
 
     def on_left_navi_resize_done(self, event):
         self._recalc_map_list_size()
@@ -207,6 +214,8 @@ class RapidMapFrame(MainFrame):
                                wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal()
         if result == wx.ID_YES:
+            writer = MapHistoryWriter(self._appconfig.conf_path)
+            writer.write(self._map_history)
             Exit()
 
     def canvasOnSize(self, event):
@@ -296,9 +305,7 @@ class RapidMapFrame(MainFrame):
                 new_map_name = newMapDialog.GetValue()
                 if len(new_map_name) > 0:
                     self.m_map_history_list.InsertItem(0, new_map_name)
-                    any_seleted = self.m_map_history_list.GetFirstSelected() != -1
-                    self.m_map_del_btn.Enable(any_seleted)
-                    self.m_map_edit_btn.Enable(any_seleted)
+                    self._map_history.add(Map(new_map_name, None))
                 else:
                     wx.MessageDialog(self, "Unusable Map Name!!",
                                      style=wx.OK_DEFAULT | wx.ICON_ERROR).ShowModal()
@@ -307,10 +314,20 @@ class RapidMapFrame(MainFrame):
         pass
 
     def on_map_delete(self, event):
-        self.m_map_history_list.DeleteItem(self.m_map_history_list.GetFirstSelected())
-        any_seleted = self.m_map_history_list.GetFirstSelected() != -1
-        self.m_map_del_btn.Enable(any_seleted)
-        self.m_map_edit_btn.Enable(any_seleted)
+        sel_index = self.m_map_history_list.GetFirstSelected()
+        if sel_index != -1:
+            map_item = self.m_map_history_list.GetItem(sel_index)
+            map_name = map_item.GetText()
+
+            with wx.MessageDialog(self, f"Do you want to delete Map \'{map_name}\'?", 'Closing Rapid Map Editor',
+                                   wx.YES_NO | wx.ICON_QUESTION) as map_del_dlg:
+
+                if map_del_dlg.ShowModal() == wx.ID_YES:
+                    self._map_history.remove_by_name(map_name)
+                    self.m_map_history_list.DeleteItem(sel_index)
+                    self.m_map_del_btn.Enable(False)
+                    self.m_map_edit_btn.Enable(False)
+
 
     def on_select_map(self, event):
         self.m_map_del_btn.Enable(True)

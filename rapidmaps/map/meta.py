@@ -82,9 +82,10 @@ class MapHistory(object):
         self._map_cache.clear()
 
     def get_maps(self):
-        if not self._map_meta:
-            self._map_meta = [MapWrapper(_map) for _map in self._map_cache.values()]
-        return self._map_meta
+        #if not self._map_meta:
+        #    self._map_meta = [MapWrapper(_map) for _map in self._map_cache.values()]
+        #return self._map_meta
+        return [MapWrapper(_map) for _map in self._map_cache.values()]
 
 
 class MapHistoryLoader(object):
