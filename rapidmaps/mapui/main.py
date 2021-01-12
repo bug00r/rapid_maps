@@ -27,9 +27,12 @@ class RapidMapFrame(MainFrame):
         self._cur_action_btn = self.m_move_btn
         self._all_shape_btns = {}
         self._init_shapes()
-        self.m_add_btn.SetBitmap(wx.Image('./resource/icon/addingcross.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
-        self.m_move_btn.SetBitmap(wx.Image('./resource/icon/map-location-solid.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
-        self.m_select_btn.SetBitmap(wx.Image('./resource/icon/hand_pointing_icon.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
+        self.m_add_btn.SetBitmap(wx.Image('./resource/icon/add.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
+        self.m_move_btn.SetBitmap(wx.Image('./resource/icon/move.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
+        self.m_select_btn.SetBitmap(wx.Image('./resource/icon/select.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
+        self.m_map_del_btn.SetBitmap(wx.Image('./resource/icon/delete.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
+        self.m_map_edit_btn.SetBitmap(wx.Image('./resource/icon/edit.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
+        self.m_map_add_btn.SetBitmap(wx.Image('./resource/icon/add.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap())
 
     def _init_shapes(self):
         for shape_entry in self._shape_lib.get_shapes():
