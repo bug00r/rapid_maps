@@ -2,5 +2,5 @@
 <history>
   <map name="Map Gareth" file="/home/bug0r/map_gareth.zip"/>
   <map name="Map Andergast" file="/home/bug0r/map_andergast.zip"/>
-  <map name="test" file="None"/>
+  <map name="test" file="saves/test.zip"/>
 </history>

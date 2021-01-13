@@ -85,22 +85,24 @@ class MapToObjectTransformator(object):
         shapes and so on"""
         map_obj = MapObject(self._map)
 
-        with zipfile.ZipFile(str(self._map.archive_path)) as mapzip:
-            with mapzip.open('index.map') as myfile:
-                root = etree.XML(myfile.read())
+        if self._map.archive_path.exists():
+            with zipfile.ZipFile(str(self._map.archive_path)) as mapzip:
+                with mapzip.open('index.map') as myfile:
+                    root = etree.XML(myfile.read())
 
-        for shape in root.xpath('shape'):
-            shape_param = XmlTagToParameterTransformator(shape).transform()
-            shape_obj = self._shape_factory.create(shape_param)
-            self._xml_to_shape_reinit(shape, shape_obj)
-            map_obj.shape_obj.append(shape_obj)
+            for shape in root.xpath('shape'):
+                shape_param = XmlTagToParameterTransformator(shape).transform()
+                shape_obj = self._shape_factory.create(shape_param)
+                self._xml_to_shape_reinit(shape, shape_obj)
+                map_obj.shape_obj.append(shape_obj)
 
-        bg = root.xpath('background')[0]
-        bg_path_str = bg.attrib.get('file')
-        bg_path = Path(bg_path_str)
-        bg_image = wx.Image(bg_path_str, wx.BITMAP_TYPE_ANY)
-        map_obj.background.path = bg_path
-        map_obj.background.image = bg_image
+            bg = root.xpath('background')
+            if len(bg) > 0:
+                bg_path_str = bg[0].attrib.get('file')
+                bg_path = Path(bg_path_str)
+                bg_image = wx.Image(bg_path_str, wx.BITMAP_TYPE_ANY)
+                map_obj.background.path = bg_path
+                map_obj.background.image = bg_image
 
         return map_obj
 

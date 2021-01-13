@@ -1,10 +1,13 @@
+import re
+
 from wx import BG_STYLE_PAINT, Exit, AutoBufferedPaintDC as abDC
 
 from rapidmaps.mapui.wxui.generated.rapidmap import MainFrame
 from rapidmaps.map.state import MapStateType
 from rapidmaps.map.shape import *
 from rapidmaps.map.meta import MapHistoryLoader, MapHistoryWriter, Map
-from rapidmaps.map import RapidMap
+from rapidmaps.map.base import RapidMap
+from rapidmaps.map.object import MapToObjectTransformator
 
 
 def remove_from_list(shape, a_list: list):
@@ -20,7 +23,7 @@ class RapidMapFrame(MainFrame):
         self._map = RapidMap(self.canvas, self._appconfig)
         self._map_history = MapHistoryLoader(self._appconfig.conf_path).load()
         self._shape_lib = self._map.shape_lib
-        self.__shape_obj = self._map.map_objects
+        #self.__shape_obj = self._map.map_objects
         self._selections = self._map.selections
         self._ms = self._map.mapstate
         self._mst = self._map.mapstatetranslator
@@ -31,7 +34,8 @@ class RapidMapFrame(MainFrame):
         self._init_shapes()
 
         self._init_icons([(self.m_add_btn, 'add'), (self.m_move_btn, 'move'), (self.m_select_btn, 'select'),
-                         (self.m_map_del_btn, 'delete'), (self.m_map_edit_btn, 'edit'), (self.m_map_add_btn, 'add')])
+                         (self.m_map_del_btn, 'delete'), (self.m_map_edit_btn, 'edit'), (self.m_map_add_btn, 'add'),
+                          (self.m_map_save_btn, 'save')])
 
         self.m_map_history_list.InsertColumn(0, "Name")
         self._recalc_map_list_size()
@@ -182,7 +186,8 @@ class RapidMapFrame(MainFrame):
         return self._ms.get(MapStateType.ADDITION_MODE_UI).value
 
     def OnLoadMap(self, event):
-        if self._map.bg_image and wx.MessageBox("Do you really want to reload the Map?", "Please confirm",
+        if self._map.map_object and self._map.map_object.background.image and \
+                wx.MessageBox("Do you really want to reload the Map?", "Please confirm",
                                              wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
             event.Skip()
         else:
@@ -220,16 +225,17 @@ class RapidMapFrame(MainFrame):
 
     def canvasOnSize(self, event):
         self._map.do_resize_viewport(event.Size)
-        self._adjust_scrollbars()
+        if self._map.map_object:
+            self._adjust_scrollbars()
 
     def OnClearMap(self, event):
-        if self.__shape_obj:
-            self.__shape_obj.clear()
+        if self._map.map_object and self._map.map_object.shape_obj:
+            self._map.map_object.shape_obj.clear()
             self.canvas.Refresh()
 
     def OnRemoveSelected(self, event):
         if not self._selections.is_empty():
-            self._selections.action(remove_from_list, [self.__shape_obj])
+            self._selections.action(remove_from_list, [self._map.map_object.shape_obj])
             self._selections.clear()
             self.canvas.Refresh()
 
@@ -273,7 +279,7 @@ class RapidMapFrame(MainFrame):
         self.m_text_size.SetValue(shape.get_text_size())
 
     def _do_zoom(self, zoom_value: int):
-        if self._map.bg_image:
+        if self._map.map_object and self._map.map_object.background.image:
             self._map.do_zoom(zoom_value)
             self._adjust_scrollbars()
 
@@ -298,6 +304,7 @@ class RapidMapFrame(MainFrame):
             self._do_zoom(self.m_zoom.Value)
 
     def on_map_add_new(self, event):
+        #TODO cleanup: First do ist work then do it right ;)
         with wx.TextEntryDialog(self, "Enter new Map's Name") as newMapDialog:
             if newMapDialog.ShowModal() == wx.ID_CANCEL:
                 event.Skip()
@@ -305,30 +312,43 @@ class RapidMapFrame(MainFrame):
                 new_map_name = newMapDialog.GetValue()
                 if len(new_map_name) > 0:
                     self.m_map_history_list.InsertItem(0, new_map_name)
-                    self._map_history.add(Map(new_map_name, None))
+                    zip_file_name = re.sub(r"\W", "_", new_map_name)
+                    self._map_history.add(Map(new_map_name, self._appconfig.map_save_path / f"{zip_file_name}.zip"))
                 else:
                     wx.MessageDialog(self, "Unusable Map Name!!",
                                      style=wx.OK_DEFAULT | wx.ICON_ERROR).ShowModal()
 
-    def on_map_edit(self, event):
-        pass
-
-    def on_map_delete(self, event):
+    def _get_selected_map_name(self):
         sel_index = self.m_map_history_list.GetFirstSelected()
         if sel_index != -1:
             map_item = self.m_map_history_list.GetItem(sel_index)
             map_name = map_item.GetText()
+        return map_name, sel_index
 
-            with wx.MessageDialog(self, f"Do you want to delete Map \'{map_name}\'?", 'Closing Rapid Map Editor',
-                                   wx.YES_NO | wx.ICON_QUESTION) as map_del_dlg:
+    def on_map_edit(self, event):
+        map_name, _ = self._get_selected_map_name()
+        used_map = self._map_history.get(map_name=map_name)
+        if self._map.map_object and self._map.map_object.map is not used_map:
+            map_obj = MapToObjectTransformator(used_map, self._appconfig.shape_path).transform()
+            self._map.map_object = map_obj
 
-                if map_del_dlg.ShowModal() == wx.ID_YES:
-                    self._map_history.remove_by_name(map_name)
-                    self.m_map_history_list.DeleteItem(sel_index)
-                    self.m_map_del_btn.Enable(False)
-                    self.m_map_edit_btn.Enable(False)
+    def on_map_delete(self, event):
+        map_name, sel_index = self._get_selected_map_name()
 
+        with wx.MessageDialog(self, f"Do you want to delete Map \'{map_name}\'?", 'Closing Rapid Map Editor',
+                               wx.YES_NO | wx.ICON_QUESTION) as map_del_dlg:
+
+            if map_del_dlg.ShowModal() == wx.ID_YES:
+                self._map_history.remove_by_name(map_name)
+                self.m_map_history_list.DeleteItem(sel_index)
+                self._map.map_object = None
+                self.m_map_del_btn.Enable(False)
+                self.m_map_edit_btn.Enable(False)
+
+    def on_map_save(self, event):
+        pass
 
     def on_select_map(self, event):
         self.m_map_del_btn.Enable(True)
         self.m_map_edit_btn.Enable(True)
+

@@ -66,6 +66,9 @@ class MainFrame ( wx.Frame ):
 
 		bSizer10.Add( self.m_map_del_btn, 0, wx.ALL, 5 )
 
+		self.m_map_save_btn = wx.BitmapButton( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0 )
+		bSizer10.Add( self.m_map_save_btn, 0, wx.ALL, 5 )
+
 
 		sbSizer2.Add( bSizer10, 1, wx.EXPAND, 5 )
 
@@ -211,7 +214,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel6.SetSizer( bSizer6 )
 		self.m_panel6.Layout()
 		bSizer6.Fit( self.m_panel6 )
-		self.m_splitter1.SplitVertically( self.m_scrolledWindow2, self.m_panel6, 200 )
+		self.m_splitter1.SplitVertically( self.m_scrolledWindow2, self.m_panel6, 410 )
 		bSizer1.Add( self.m_splitter1, 1, wx.EXPAND, 5 )
 
 
@@ -228,6 +231,7 @@ class MainFrame ( wx.Frame ):
 		self.m_map_add_btn.Bind( wx.EVT_BUTTON, self.on_map_add_new )
 		self.m_map_edit_btn.Bind( wx.EVT_BUTTON, self.on_map_edit )
 		self.m_map_del_btn.Bind( wx.EVT_BUTTON, self.on_map_delete )
+		self.m_map_save_btn.Bind( wx.EVT_BUTTON, self.on_map_save )
 		self.m_map_history_list.Bind( wx.EVT_LIST_ITEM_SELECTED, self.on_select_map )
 		self.m_add_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
 		self.m_select_btn.Bind( wx.EVT_TOGGLEBUTTON, self.on_mode_change_toggle )
@@ -277,6 +281,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def on_map_delete( self, event ):
+		event.Skip()
+
+	def on_map_save( self, event ):
 		event.Skip()
 
 	def on_select_map( self, event ):
@@ -348,7 +355,7 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def m_splitter1OnIdle( self, event ):
-		self.m_splitter1.SetSashPosition( 200 )
+		self.m_splitter1.SetSashPosition( 410 )
 		self.m_splitter1.Unbind( wx.EVT_IDLE )
 
 
