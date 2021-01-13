@@ -6,7 +6,7 @@ from pathlib import Path
 
 from rapidmaps.map.meta import Map
 from rapidmaps.map.shape import ShapeParameter, Shape
-from rapidmaps.map.shape_lib import XmlTagToParameterTransformator, ShapeFactory
+from rapidmaps.map.shape_lib import XmlTagToParameterTransformator, ShapeFactory, ShapeEntry
 
 
 class MapBackground(object):
@@ -78,7 +78,7 @@ class MapToObjectTransformator(object):
                 elif tag_name == 'rotation':
                     shape.set_angle(int(child.get('angle')))
                 elif tag_name == 'label':
-                    shape.set_angle(child.get('value'))
+                    shape.set_name(child.get('value'))
 
     def transform(self) -> MapObject:
         """TODO reading zip file from Map and fill MapObject with parameter and Background,
@@ -86,6 +86,7 @@ class MapToObjectTransformator(object):
         map_obj = MapObject(self._map)
 
         if self._map.archive_path.exists():
+
             with zipfile.ZipFile(str(self._map.archive_path)) as mapzip:
                 with mapzip.open('index.map') as myfile:
                     root = etree.XML(myfile.read())
@@ -110,7 +111,7 @@ class MapToObjectTransformator(object):
 class MapObjectWriter(object):
 
     file_skeleton = b'<?xml version="1.0" encoding="UTF-8"?><map></map>'
-    excluded_parm = ['type', 'group', 'name']
+    excluded_parm = ['type', 'name']
 
     def __init__(self, map_object: MapObject):
         self._map_object = map_object
@@ -157,18 +158,20 @@ class MapObjectWriter(object):
                 param_tag.attrib['name'] = key
                 shape_tag.append(param_tag)
 
-            if shape.shape:
-                etree.SubElement(shape_tag, 'pos', attrib={'x': str(shape.shape.get_pos().x),
-                                                           'y': str(shape.shape.get_pos().y)})
+            etree.SubElement(shape_tag, 'pos', attrib={'x': str(shape.get_pos().x),
+                                                       'y': str(shape.get_pos().y)})
 
-                etree.SubElement(shape_tag, 'size', attrib={'w': str(shape.shape.get_size().width),
-                                                           'h': str(shape.shape.get_size().height)})
+            etree.SubElement(shape_tag, 'size', attrib={'w': str(shape.get_size().width),
+                                                       'h': str(shape.get_size().height)})
 
-                etree.SubElement(shape_tag, 'rotation', attrib={'angle': str(shape.shape.get_angle())})
+            etree.SubElement(shape_tag, 'rotation', attrib={'angle': str(shape.get_angle())})
 
-                etree.SubElement(shape_tag, 'label', attrib={'value': shape.shape.get_name()})
+            etree.SubElement(shape_tag, 'label', attrib={'value': shape.get_name()})
 
             root.append(shape_tag)
+
+        if not self._map_object.map.archive_path.parent.exists():
+            self._map_object.map.archive_path.parent.mkdir()
 
         with zipfile.ZipFile(str(self._map_object.map.archive_path), mode='w') as mapzip:
             mapzip.writestr('index.map', etree.tostring(root, pretty_print=True))

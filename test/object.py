@@ -16,11 +16,24 @@ class MyTestCase(unittest.TestCase):
         map_object = MapObject(Map('TestMap', Path('./MyTestMap.zip')))
         shape_list = map_object.shape_obj
         map_object.background.path = Path('./examplemaps/Schlacht-in-den-Wolken_Handouts-Gareth_fc38.jpg')
-        shape_list.append(shape_lib.get('Woman'))
-        shape_list.append(shape_lib.get('Warrior'))
-        shape_list.append(shape_lib.get('Monk'))
-        shape_list.append(shape_lib.get('Rectangle'))
-        shape_list.append(shape_lib.get('Triangle'))
+        shape = shape_lib.get('Woman')
+        new_obj = shape.shape_factory.create(shape.param)
+        new_obj.param = shape.param
+        shape_list.append(new_obj)
+        shape = shape_lib.get('Woman')
+        new_obj = shape.shape_factory.create(shape.param)
+        new_obj.param = shape.param
+        shape_list.append(new_obj)
+        shape = shape_lib.get('Monk')
+        new_obj = shape.shape_factory.create(shape.param)
+        new_obj.param = shape.param
+        shape_list.append(new_obj)
+        """shape = shape_lib.get('Rectangle')
+        new_obj = shape.shape_factory.create(shape.param)
+        shape_list.append(new_obj)
+        shape = shape_lib.get('Triangle')
+        new_obj = shape.shape_factory.create(shape.param)
+        shape_list.append(new_obj)"""
         mo_writer = MapObjectWriter(map_object)
         mo_writer.write()
 

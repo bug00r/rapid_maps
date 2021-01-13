@@ -1,4 +1,5 @@
 from typing import Union
+from pathlib import Path
 
 from rapidmaps.map.selection import Selections
 from rapidmaps.map.state import MapStateTranslator, MapState, MapStateType
@@ -96,9 +97,11 @@ class RapidMap(object):
         self._map_object = map_obj
         self._canvas.Refresh()
 
-    def set_background(self, image: wx.Image):
-        if self._map_object and image:
+    def set_background(self, image_path: Path):
+        if self._map_object and image_path:
+            image = wx.Image(str(image_path), wx.BITMAP_TYPE_ANY)
             self._map_object.background.image = image
+            self._map_object.background.path = image_path
             #self._bg_image = image
             #self._bg_bitmap = self._bg_image.ConvertToBitmap()
             self._view.vsize = image.GetSize()
@@ -113,8 +116,8 @@ class RapidMap(object):
     def _realign_viewport_on_overflow(self):
         ## If scroll position + normalized screen width overflows on zoom we have to recalculate and refresh
         #if self._bg_bitmap:
-        bg_bitmap = self._map_object.background.bitmap
-        if bg_bitmap:
+        if self._map_object and self._map_object.background.bitmap:
+            bg_bitmap = self._map_object.background.bitmap
             scrolloverx = bg_bitmap.GetSize().width - (self._normalized.x + self._normalized.width)
             scrolloverx = 0.0 if scrolloverx > 0 else scrolloverx
 
@@ -125,31 +128,34 @@ class RapidMap(object):
             self._view.viewport.base.y += scrollovery
 
     def do_zoom(self, zoom_value: int):
-        if self._map_object and self._map_object.background.bitmap:
-            self._view.zoom.factor = float(zoom_value) / 100.0
+        self._view.zoom.factor = float(zoom_value) / 100.0
 
-            self._refresh_view_state()
+        self._refresh_view_state()
 
-            self._realign_viewport_on_overflow()
+        self._realign_viewport_on_overflow()
 
-            self._canvas.Refresh()
+        self._canvas.Refresh()
 
     def do_resize_viewport(self, newsize: wx.Size):
-        if self._map_object:
-            self._view.rsize = newsize
-            self._view.viewport.base.width = newsize.width
-            self._view.viewport.base.height = newsize.height
-            self._refresh_view_state()
-            self._realign_viewport_on_overflow()
+        self._view.rsize = newsize
+        self._view.viewport.base.width = newsize.width
+        self._view.viewport.base.height = newsize.height
+        self._refresh_view_state()
+        self._realign_viewport_on_overflow()
 
     def _refresh_view_state(self):
         self._view.refresh_zoomed_vport()
         zoomedview = self._view.viewport.zoomed
-        bg_bitmap = self._map_object.background.bitmap
-        bg_image = self._map_object.background.image
 
-        limit_width = bg_image.GetSize().width if bg_bitmap else self._view.rsize.width
-        limit_height = bg_image.GetSize().height if bg_bitmap else self._view.rsize.height
+        if self._map_object:
+            bg_bitmap = self._map_object.background.bitmap
+            bg_image = self._map_object.background.image
+
+            limit_width = bg_image.GetSize().width if bg_bitmap else self._view.rsize.width
+            limit_height = bg_image.GetSize().height if bg_bitmap else self._view.rsize.height
+        else:
+            limit_width = self._view.rsize.width
+            limit_height = self._view.rsize.height
 
         self._normalized = wx.Rect(zoomedview.x, zoomedview.y, min(limit_width, zoomedview.width),
                                    min(limit_height, zoomedview.height))
@@ -182,21 +188,22 @@ class RapidMap(object):
             self._view.viewport.base.height = self._canvas.GetSize().height
 
     def _draw_objects(self, dc):
-        for shape in self._map_object.shape_obj:
-            zoomedview = self._view.viewport.zoomed
-            zoom = self._view.zoom.factor
-            if shape.get_bbox().Intersects(zoomedview):
-                if zoom > 0:
-                    temppos = shape.get_pos()
-                    tempsize = shape.get_size()
-                    shape.set_pos(wx.Point((temppos.x - zoomedview.x) * zoom,
-                                           (temppos.y - zoomedview.y) * zoom))
-                    shape.set_size(wx.Size(tempsize.width * zoom,
-                                           tempsize.height * zoom))
+        if self._map_object:
+            for shape in self._map_object.shape_obj:
+                zoomedview = self._view.viewport.zoomed
+                zoom = self._view.zoom.factor
+                if shape.get_bbox().Intersects(zoomedview):
+                    if zoom > 0:
+                        temppos = shape.get_pos()
+                        tempsize = shape.get_size()
+                        shape.set_pos(wx.Point((temppos.x - zoomedview.x) * zoom,
+                                               (temppos.y - zoomedview.y) * zoom))
+                        shape.set_size(wx.Size(tempsize.width * zoom,
+                                               tempsize.height * zoom))
 
-                    shape.draw_by_dc(dc)
-                    shape.set_pos(temppos)
-                    shape.set_size(tempsize)
+                        shape.draw_by_dc(dc)
+                        shape.set_pos(temppos)
+                        shape.set_size(tempsize)
 
     def _draw_selection_outline(self, dc):
         if self._mst.is_selection_area_active:
@@ -209,11 +216,10 @@ class RapidMap(object):
             dc.SetBrush(oldbrush)
 
     def update(self, dc: wx.DC):
-        if self._map_object:
-            self._refresh_view_state()
-            self._draw_background(dc)
-            self._draw_objects(dc)
-            self._draw_selection_outline(dc)
+        self._refresh_view_state()
+        self._draw_background(dc)
+        self._draw_objects(dc)
+        self._draw_selection_outline(dc)
 
     def single_select_at(self, x: int, y: int) -> Union[Shape, None]:
         anyselected = False

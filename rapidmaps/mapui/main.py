@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 from wx import BG_STYLE_PAINT, Exit, AutoBufferedPaintDC as abDC
 
@@ -7,7 +8,7 @@ from rapidmaps.map.state import MapStateType
 from rapidmaps.map.shape import *
 from rapidmaps.map.meta import MapHistoryLoader, MapHistoryWriter, Map
 from rapidmaps.map.base import RapidMap
-from rapidmaps.map.object import MapToObjectTransformator
+from rapidmaps.map.object import MapToObjectTransformator, MapObjectWriter
 
 
 def remove_from_list(shape, a_list: list):
@@ -200,7 +201,7 @@ class RapidMapFrame(MainFrame):
                 else:
                     try:
                         pathname = fileDialog.GetPath()
-                        self._map.set_background(wx.Image(pathname, wx.BITMAP_TYPE_ANY))
+                        self._map.set_background(Path(pathname))
                         self._adjust_scrollbars()
                         self.m_zoom.Value = 100
                     except IOError:
@@ -328,7 +329,7 @@ class RapidMapFrame(MainFrame):
     def on_map_edit(self, event):
         map_name, _ = self._get_selected_map_name()
         used_map = self._map_history.get(map_name=map_name)
-        if self._map.map_object and self._map.map_object.map is not used_map:
+        if self._map.map_object is None or (self._map.map_object and self._map.map_object.map is not used_map):
             map_obj = MapToObjectTransformator(used_map, self._appconfig.shape_path).transform()
             self._map.map_object = map_obj
 
@@ -345,8 +346,11 @@ class RapidMapFrame(MainFrame):
                 self.m_map_del_btn.Enable(False)
                 self.m_map_edit_btn.Enable(False)
 
+    def _do_map_save(self):
+        MapObjectWriter(self._map.map_object).write()
+
     def on_map_save(self, event):
-        pass
+        self._do_map_save()
 
     def on_select_map(self, event):
         self.m_map_del_btn.Enable(True)
