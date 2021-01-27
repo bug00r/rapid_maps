@@ -13,9 +13,18 @@ from rapidmaps.map.shape_lib import XmlTagToParameterTransformator, ShapeFactory
 class MapBackground(object):
     def __init__(self):
         self._image = None
-        self._path = None
+        #self._path = None
         self._bitmap = None
         self._file_size = 0
+        self._changed = False
+
+    @property
+    def changed(self):
+        return self._changed
+
+    @changed.setter
+    def changed(self, changed: bool):
+        self._changed = changed
 
     @property
     def file_size(self):
@@ -33,14 +42,14 @@ class MapBackground(object):
     def image(self, new_image: wx.Image):
         self._image = new_image
 
-    @property
+    """   @property
     def path(self) -> Path:
         return self._path
 
     @path.setter
     def path(self, _path: Path):
         self._path = _path
-
+    """
     @property
     def bitmap(self):
         used_bitmap = self._bitmap
@@ -98,6 +107,9 @@ class MapToObjectTransformator(object):
         if self._map.archive_path.exists():
 
             with zipfile.ZipFile(str(self._map.archive_path)) as mapzip:
+
+                zipnames = mapzip.namelist()
+
                 with mapzip.open('index.map') as myfile:
                     root = etree.XML(myfile.read())
 
@@ -109,13 +121,12 @@ class MapToObjectTransformator(object):
 
                     bg = root.xpath('background')
                     if len(bg) > 0:
-                        bg_path_str = bg[0].attrib.get('file')
-                        bg_path = Path(bg_path_str)
-                        with mapzip.open('background.img') as bg_image_obj:
-                            bg_image = wx.Image(bg_image_obj, wx.BITMAP_TYPE_ANY)
-                            map_obj.background.path = bg_path
-                            map_obj.background.image = bg_image
-                            map_obj.background.file_size = bg_path.stat().st_size
+                        if "background.img" in zipnames:
+                            with mapzip.open('background.img') as bg_image_obj:
+                                bg_image = wx.Image(bg_image_obj, wx.BITMAP_TYPE_ANY)
+                                map_obj.background.image = bg_image
+                                map_obj.background.changed = False
+                                map_obj.background.file_size = int(str(bg[0].attrib.get('file_size')))
 
         return map_obj
 
@@ -155,7 +166,7 @@ class MapObjectWriter(object):
         root.attrib['name'] = self._map_object.map.name
 
         background = etree.Element('background')
-        background.attrib['file'] = str(self._map_object.background.path.absolute())
+        background.attrib['file_size'] = str(self._map_object.background.file_size)
         root.append(background)
 
         for shape in self._map_object.shape_obj:
@@ -185,9 +196,11 @@ class MapObjectWriter(object):
         if not self._map_object.map.archive_path.parent.exists():
             self._map_object.map.archive_path.parent.mkdir()
 
+
         with zipfile.ZipFile(str(self._map_object.map.archive_path), mode='w') as mapzip:
+
             mapzip.writestr('index.map', etree.tostring(root, pretty_print=True))
-            #write wx.image to memory output stream
+
             imageBytes = bytes()
             ioBufferbase = io.BytesIO(imageBytes)
             ioBuffer = io.BufferedWriter(raw=ioBufferbase, buffer_size=self._map_object.background.file_size)

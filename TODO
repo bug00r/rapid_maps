@@ -1,15 +1,11 @@
 NEW:
-    - Create Map Structure
-        - map names are unique
-    - Create Map Creation Processes
-        - new Map
-        - save Map
-            - in first Version we create a zip file with only an xml map descriptor
-            - in second version we will save all images into the zip file too
-                   !!!! wx.Python has No FileOutputStream !!!!
-                   save image: img.SaveFile('saved.png', wx.BITMAP_TYPE_PNG)
-        - edit Map
-        - creation of UI Elements to handle this Process
+    - handling Background from containing zipfile image
+        background states:
+            - adding background changed flag
+            - if background state changed, we have to save new background
+            - adding file_size to index.map
+            - removing path
+    - adding zoom factor to save states
 
 
 IN PROCESS:
@@ -28,3 +24,14 @@ DONE:
                 - subimage from scaled viewport width and height, based on center
                 - normalize this subimage to old viewport
                 - adjust scrollbar
+5. Create Map Structure
+    - map names are unique
+6. Create Map Creation Processes
+    - new Map
+    - save Map
+        - in first Version we create a zip file with only an xml map descriptor
+        - in second version we will save all images into the zip file too
+               !!!! wx.Python has No FileOutputStream !!!!
+               save image: img.SaveFile('saved.png', wx.BITMAP_TYPE_PNG)
+    - edit Map
+    - creation of UI Elements to handle this Process
