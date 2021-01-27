@@ -102,6 +102,7 @@ class RapidMap(object):
             image = wx.Image(str(image_path), wx.BITMAP_TYPE_ANY)
             self._map_object.background.image = image
             self._map_object.background.path = image_path
+            self._map_object.background.file_size = image_path.stat().st_size
             #self._bg_image = image
             #self._bg_bitmap = self._bg_image.ConvertToBitmap()
             self._view.vsize = image.GetSize()
