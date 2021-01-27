@@ -41,6 +41,7 @@ class RapidMapFrame(MainFrame):
         self.m_map_history_list.InsertColumn(0, "Name")
         self._recalc_map_list_size()
         self._init_map_history()
+        self._redraw_left_navigation_pane_complete()
 
     def _init_map_history(self):
         for index, map in enumerate(self._map_history.get_maps()):
@@ -102,13 +103,17 @@ class RapidMapFrame(MainFrame):
         self.m_shape_lib.GetSizer().Add(new_cpane, 0, wx.GROW | wx.ALL, 5)
         return new_cpane
 
+    def _redraw_left_navigation_pane_complete(self):
+        b_pos = self.m_splitter1.GetSashPosition()
+        self.m_splitter1.SetSashPosition(b_pos + 1)
+        self.m_splitter1.SetSashPosition(b_pos)
+
     def on_shape_group_collapse(self, event):
         self.m_panel3.GetSizer().Layout()
         self.m_panel3.Refresh()
         #This is for redrawing leftpanel, little bit hacky
-        b_pos = self.m_splitter1.GetSashPosition()
-        self.m_splitter1.SetSashPosition(b_pos + 1)
-        self.m_splitter1.SetSashPosition(b_pos)
+        self._redraw_left_navigation_pane_complete()
+
 
     def on_mode_change_toggle(self, event):
         self._cur_action_btn.SetValue(not self._cur_action_btn != event.EventObject)
