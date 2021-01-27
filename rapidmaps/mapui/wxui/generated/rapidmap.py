@@ -74,7 +74,7 @@ class MainFrame ( wx.Frame ):
 
 		bSizer13 = wx.BoxSizer( wx.VERTICAL )
 
-		self.m_map_history_list = wx.ListCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_HRULES|wx.LC_LIST|wx.LC_NO_HEADER|wx.LC_REPORT|wx.LC_SINGLE_SEL )
+		self.m_map_history_list = wx.ListCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_HRULES|wx.LC_NO_HEADER|wx.LC_REPORT|wx.LC_SINGLE_SEL )
 		self.m_map_history_list.SetMinSize( wx.Size( -1,150 ) )
 		self.m_map_history_list.SetMaxSize( wx.Size( 100,-1 ) )
 
