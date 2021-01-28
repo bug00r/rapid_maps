@@ -9,7 +9,8 @@ from rapidmaps.map.shape import *
 from rapidmaps.map.meta import MapHistoryLoader, MapHistoryWriter, Map
 from rapidmaps.map.base import RapidMap
 from rapidmaps.map.object import MapToObjectTransformator, MapObjectWriter
-from rapidmaps.core.zip_utils import extract_map_name, MapFileException, MapFileNotExistException
+from rapidmaps.core.zip_utils import extract_map_name, extract_map_name_no_execpt,\
+    MapFileException, MapFileNotExistException
 
 
 def remove_from_list(shape, a_list: list):
@@ -350,8 +351,12 @@ class RapidMapFrame(MainFrame):
 
                         if mapImportDialog.ShowModal() == wx.ID_OK:
                             pathname = mapImportDialog.GetPath()
-                            used_map.archive_path = Path(pathname)
-                            self._map_edit(max_tries)
+                            if map_name == extract_map_name_no_execpt(pathname):
+                                used_map.archive_path = Path(pathname)
+                                self._map_edit(max_tries)
+                            else:
+                                wx.MessageDialog(self, "Map File not match history", caption="Map Open Error",
+                                                                style=wx.OK_DEFAULT | wx.ICON_ERROR).ShowModal()
 
     def on_map_edit(self, event):
         max_tries = 3

@@ -25,3 +25,13 @@ def extract_map_name(zip_path: str) -> str:
             raise MapFileException("Invalid or Corrupt Mapfile :(.")
 
     return map_name
+
+
+def extract_map_name_no_execpt(zip_path: str) -> str:
+
+    try:
+        map_name = extract_map_name(zip_path)
+    except MapFileException:
+        map_name = ""
+
+    return map_name
