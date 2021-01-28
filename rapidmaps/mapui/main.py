@@ -12,6 +12,8 @@ from rapidmaps.map.object import MapToObjectTransformator, MapObjectWriter
 from rapidmaps.core.zip_utils import extract_map_name, extract_map_name_no_execpt,\
     MapFileException, MapFileNotExistException
 
+from rapidmaps.map.workflow.init import IconInitWF, ShapeInitWF, HistoryInitWF
+
 
 def remove_from_list(shape, a_list: list):
     a_list.remove(shape)
@@ -26,7 +28,7 @@ class RapidMapFrame(MainFrame):
         self._map = RapidMap(self.canvas, self._appconfig)
         self._map_history = MapHistoryLoader(self._appconfig.conf_path).load()
         self._shape_lib = self._map.shape_lib
-        #self.__shape_obj = self._map.map_objects
+
         self._selections = self._map.selections
         self._ms = self._map.mapstate
         self._mst = self._map.mapstatetranslator
@@ -34,20 +36,42 @@ class RapidMapFrame(MainFrame):
         self._cur_shape_btn = None
         self._cur_action_btn = self.m_move_btn
         self._all_shape_btns = {}
-        self._init_shapes()
 
-        self._init_icons([(self.m_add_btn, 'add'), (self.m_move_btn, 'move'), (self.m_select_btn, 'select'),
-                         (self.m_map_del_btn, 'delete'), (self.m_map_edit_btn, 'edit'), (self.m_map_add_btn, 'add'),
-                          (self.m_map_save_btn, 'save'), (self.m_map_import_btn, 'import')])
+        ShapeInitWF(self).process()
+        IconInitWF(self).process()
+        HistoryInitWF(self).process()
 
-        self.m_map_history_list.InsertColumn(0, "Name")
-        self._recalc_map_list_size()
-        self._init_map_history()
-        self._redraw_left_navigation_pane_complete()
+    @property
+    def map_history(self):
+        return self._map_history
 
-    def _init_map_history(self):
-        for index, map in enumerate(self._map_history.get_maps()):
-            self.m_map_history_list.InsertItem(index, map.name)
+    @property
+    def cur_shape_btn(self):
+        return self._cur_shape_btn
+
+    @cur_shape_btn.setter
+    def cur_shape_btn(self, new_current_shape_btn):
+        self._cur_shape_btn = new_current_shape_btn
+
+    @property
+    def redraw_left_navigation_pane_complete(self):
+        return self._redraw_left_navigation_pane_complete
+
+    @property
+    def shape_lib(self):
+        return self._shape_lib
+
+    @property
+    def shape_lib_groups(self):
+        return self._shape_lib_groups
+
+    @property
+    def all_shape_btns(self):
+        return self._all_shape_btns
+
+    @property
+    def recalc_map_list_size(self):
+        return self._recalc_map_list_size
 
     def on_left_navi_resize_done(self, event):
         self._recalc_map_list_size()
@@ -57,65 +81,10 @@ class RapidMapFrame(MainFrame):
         self.m_map_history_list.SetMaxSize(wx.Size(list_size, 150))
         self.m_map_history_list.SetColumnWidth(0, list_size)
 
-    def _init_icons(self, element_list):
-        for element, icon in element_list:
-            element.SetBitmap(wx.Image(f"./resource/icon/{icon}.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap())
-
-    def _init_shapes(self):
-        for shape_entry in self._shape_lib.get_shapes():
-
-            if not shape_entry.group in self._shape_lib_groups:
-                colpane = self._add_new_shape_group(shape_entry.group)
-                self._shape_lib_groups[shape_entry.group] = colpane
-            else:
-                colpane = self._shape_lib_groups[shape_entry.group]
-
-            c_btn = wx.BitmapToggleButton(colpane.GetPane())
-
-            c_btn.Bind(wx.EVT_TOGGLEBUTTON, self.on_shape_btn_pressed)
-            self._all_shape_btns[c_btn] = shape_entry.name
-            colpane.GetPane().GetSizer().Add(c_btn, 1, wx.ALL, 2)
-
-            if shape_entry.shape:
-                size = shape_entry.shape.get_size()
-                thumb = wx.Bitmap.FromRGBA(size.width, size.height, alpha=1)
-                thumb_dc = wx.MemoryDC(thumb)
-                shape_entry.shape.show_label(False)
-                shape_entry.shape.draw_by_dc(thumb_dc)
-                shape_entry.shape.show_label(True)
-                thumb_img = thumb.ConvertToImage().Rescale(32, 32)
-                c_btn.SetBitmap(thumb_img.ConvertToBitmap())
-
-    def on_shape_btn_pressed(self, event):
-
-        if self._cur_shape_btn:
-            self._cur_shape_btn.SetValue(False)
-
-        if event.EventObject == self._cur_shape_btn and event.Int == 0:
-            self._cur_shape_btn = None
-        else:
-            self._cur_shape_btn = event.EventObject
-
-    def _add_new_shape_group(self, group_name) -> wx.CollapsiblePane:
-        new_cpane = wx.CollapsiblePane(self.m_shape_lib, wx.ID_ANY, f"{group_name}:", style=wx.CP_NO_TLW_RESIZE)
-        new_cpane.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_shape_group_collapse)
-        grid_sizer = wx.GridSizer(rows=0, cols=3, gap=wx.Size(2,2))
-        new_cpane.GetPane().SetSizer(grid_sizer)
-        grid_sizer.SetSizeHints(new_cpane.GetPane())
-        self.m_shape_lib.GetSizer().Add(new_cpane, 0, wx.GROW | wx.ALL, 5)
-        return new_cpane
-
     def _redraw_left_navigation_pane_complete(self):
         b_pos = self.m_splitter1.GetSashPosition()
         self.m_splitter1.SetSashPosition(b_pos + 1)
         self.m_splitter1.SetSashPosition(b_pos)
-
-    def on_shape_group_collapse(self, event):
-        self.m_panel3.GetSizer().Layout()
-        self.m_panel3.Refresh()
-        #This is for redrawing leftpanel, little bit hacky
-        self._redraw_left_navigation_pane_complete()
-
 
     def on_mode_change_toggle(self, event):
         self._cur_action_btn.SetValue(not self._cur_action_btn != event.EventObject)
