@@ -1,10 +1,8 @@
 NEW:
-    - handling Background from containing zipfile image
-        background states:
-            - adding background changed flag
-            - if background state changed, we have to save new background
-            - adding file_size to index.map
-            - removing path
+
+    - handling corrupt map history
+        - if history entry is deprecated
+            - dialog for changing zip path or removing entry
     - adding zoom factor to save states
 
 
@@ -35,3 +33,13 @@ DONE:
                save image: img.SaveFile('saved.png', wx.BITMAP_TYPE_PNG)
     - edit Map
     - creation of UI Elements to handle this Process
+7. handling Background from containing zipfile image
+        background states:
+            - adding background changed flag
+            - if background state changed, we have to save new background
+            - adding file_size to index.map
+            - removing path
+6. create open map process
+        - process
+            - check for valid mapfile
+        - UI Elements

@@ -8,6 +8,7 @@ from pathlib import Path
 from rapidmaps.map.meta import Map
 from rapidmaps.map.shape import ShapeParameter, Shape
 from rapidmaps.map.shape_lib import XmlTagToParameterTransformator, ShapeFactory, ShapeEntry
+from rapidmaps.core.zip_utils import MapFileNotExistException, extract_map_name
 
 
 class MapBackground(object):
@@ -104,7 +105,7 @@ class MapToObjectTransformator(object):
         shapes and so on"""
         map_obj = MapObject(self._map)
 
-        if self._map.archive_path.exists():
+        if self._map.archive_path.exists() and extract_map_name(str(self._map.archive_path)):
 
             with zipfile.ZipFile(str(self._map.archive_path)) as mapzip:
 
@@ -127,6 +128,8 @@ class MapToObjectTransformator(object):
                                 map_obj.background.image = bg_image
                                 map_obj.background.changed = False
                                 map_obj.background.file_size = int(str(bg[0].attrib.get('file_size')))
+        else:
+            raise MapFileNotExistException(f"Mapfile: \'{str(self._map.archive_path)}\' not exist")
 
         return map_obj
 

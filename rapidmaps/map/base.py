@@ -21,9 +21,6 @@ class RapidMap(object):
         # new parts
         self._ms = MapState()
         self._mst = MapStateTranslator(self._ms, self._selections)
-        #self.__shape_obj = []
-        #self._bg_bitmap = None
-        #self._bg_image = None
         self._canvas = canvas
         self._view = MapView()
         self._normalized = wx.Rect(self._view.viewport.base)
@@ -40,10 +37,6 @@ class RapidMap(object):
         self._ms.set(MapStateType.MOUSE_LEFT_RELEASE_POS, wx.Point(-1, -1))
         self._scrollbar = ScrollbarDimensions()
 
-    #@property
-    #def map_objects(self):
-    #    return self.__shape_obj
-
     @property
     def mapstate(self) -> MapState:
         return self._ms
@@ -55,22 +48,6 @@ class RapidMap(object):
     @property
     def selections(self) -> Selections:
         return self._selections
-
-    #@property
-    #def bg_bitmap(self):
-    #    return self._bg_bitmap
-
-    #@bg_bitmap.setter
-    #def bg_bitmap(self, bg_bitmap: wx.Image):
-    #    self._bg_bitmap = bg_bitmap
-
-    #@property
-    #def bg_image(self):
-    #    return self._bg_image
-
-    #@bg_image.setter
-    #def bg_image(self, new_bg_image: wx.Image):
-    #    self._bg_image = new_bg_image
 
     @property
     def normalized(self):
@@ -101,7 +78,6 @@ class RapidMap(object):
         if self._map_object and image_path:
             image = wx.Image(str(image_path), wx.BITMAP_TYPE_ANY)
             self._map_object.background.image = image
-            #self._map_object.background.path = image_path
             self._map_object.background.changed = True
             self._map_object.background.file_size = image_path.stat().st_size
             self._view.vsize = image.GetSize()

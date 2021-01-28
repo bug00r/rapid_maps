@@ -9,6 +9,7 @@ from rapidmaps.map.shape import *
 from rapidmaps.map.meta import MapHistoryLoader, MapHistoryWriter, Map
 from rapidmaps.map.base import RapidMap
 from rapidmaps.map.object import MapToObjectTransformator, MapObjectWriter
+from rapidmaps.core.zip_utils import extract_map_name, MapFileException, MapFileNotExistException
 
 
 def remove_from_list(shape, a_list: list):
@@ -36,7 +37,7 @@ class RapidMapFrame(MainFrame):
 
         self._init_icons([(self.m_add_btn, 'add'), (self.m_move_btn, 'move'), (self.m_select_btn, 'select'),
                          (self.m_map_del_btn, 'delete'), (self.m_map_edit_btn, 'edit'), (self.m_map_add_btn, 'add'),
-                          (self.m_map_save_btn, 'save')])
+                          (self.m_map_save_btn, 'save'), (self.m_map_import_btn, 'import')])
 
         self.m_map_history_list.InsertColumn(0, "Name")
         self._recalc_map_list_size()
@@ -331,12 +332,30 @@ class RapidMapFrame(MainFrame):
             map_name = map_item.GetText()
         return map_name, sel_index
 
-    def on_map_edit(self, event):
+    def _map_edit(self, max_tries: int):
         map_name, _ = self._get_selected_map_name()
         used_map = self._map_history.get(map_name=map_name)
         if self._map.map_object is None or (self._map.map_object and self._map.map_object.map is not used_map):
-            map_obj = MapToObjectTransformator(used_map, self._appconfig.shape_path).transform()
-            self._map.map_object = map_obj
+            try:
+                map_obj = MapToObjectTransformator(used_map, self._appconfig.shape_path).transform()
+                self._map.map_object = map_obj
+            except (MapFileNotExistException, MapFileException) as mfne:
+                edit_history = wx.MessageDialog(self, f"Error on open Map: {str(mfne)}.\nEdit History entry?",
+                                                caption="Map Open Error", style=wx.YES_NO | wx.ICON_ERROR).ShowModal()
+                if edit_history == wx.ID_YES and max_tries > 0:
+                    max_tries = max_tries - 1
+                    with wx.FileDialog(self, "Select history Map File",
+                                       wildcard="ZIP files (*.zip)|*.zip",
+                                       style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as mapImportDialog:
+
+                        if mapImportDialog.ShowModal() == wx.ID_OK:
+                            pathname = mapImportDialog.GetPath()
+                            used_map.archive_path = Path(pathname)
+                            self._map_edit(max_tries)
+
+    def on_map_edit(self, event):
+        max_tries = 3
+        self._map_edit(max_tries)
 
     def on_map_delete(self, event):
         map_name, sel_index = self._get_selected_map_name()
@@ -350,6 +369,7 @@ class RapidMapFrame(MainFrame):
                 self._map.map_object = None
                 self.m_map_del_btn.Enable(False)
                 self.m_map_edit_btn.Enable(False)
+                self.m_map_save_btn.Enable(False)
 
     def _do_map_save(self):
         MapObjectWriter(self._map.map_object).write()
@@ -360,4 +380,22 @@ class RapidMapFrame(MainFrame):
     def on_select_map(self, event):
         self.m_map_del_btn.Enable(True)
         self.m_map_edit_btn.Enable(True)
+        self.m_map_save_btn.Enable(True)
+
+    def on_map_import( self, event):
+        with wx.FileDialog(self, "Import Existing Map",
+                           wildcard="ZIP files (*.zip)|*.zip",
+                           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as mapImportDialog:
+
+            if mapImportDialog.ShowModal() == wx.ID_CANCEL:
+                event.Skip()
+            else:
+                pathname = mapImportDialog.GetPath()
+                try:
+                    imported_map_name = extract_map_name(pathname)
+                    self._map_history.add(Map(imported_map_name, Path(pathname)))
+                    self.m_map_history_list.InsertItem(0, imported_map_name)
+                except MapFileException as mfe:
+                    wx.MessageDialog(self, str(mfe), caption="Map Import Error",
+                                     style=wx.OK_DEFAULT | wx.ICON_ERROR).ShowModal()
 

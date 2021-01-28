@@ -53,6 +53,9 @@ class MainFrame ( wx.Frame ):
 
 		bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
 
+		self.m_map_import_btn = wx.BitmapButton( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0 )
+		bSizer10.Add( self.m_map_import_btn, 0, wx.ALL, 5 )
+
 		self.m_map_add_btn = wx.BitmapButton( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0 )
 		bSizer10.Add( self.m_map_add_btn, 0, wx.ALL, 5 )
 
@@ -67,6 +70,8 @@ class MainFrame ( wx.Frame ):
 		bSizer10.Add( self.m_map_del_btn, 0, wx.ALL, 5 )
 
 		self.m_map_save_btn = wx.BitmapButton( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0 )
+		self.m_map_save_btn.Enable( False )
+
 		bSizer10.Add( self.m_map_save_btn, 0, wx.ALL, 5 )
 
 
@@ -228,6 +233,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.OnLoadMap, id = self.m_mi_loadmap.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnExit, id = self.m_mi_exit.GetId() )
 		self.m_splitter1.Bind( wx.EVT_SPLITTER_SASH_POS_CHANGED, self.on_left_navi_resize_done )
+		self.m_map_import_btn.Bind( wx.EVT_BUTTON, self.on_map_import )
 		self.m_map_add_btn.Bind( wx.EVT_BUTTON, self.on_map_add_new )
 		self.m_map_edit_btn.Bind( wx.EVT_BUTTON, self.on_map_edit )
 		self.m_map_del_btn.Bind( wx.EVT_BUTTON, self.on_map_delete )
@@ -272,6 +278,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def on_left_navi_resize_done( self, event ):
+		event.Skip()
+
+	def on_map_import( self, event ):
 		event.Skip()
 
 	def on_map_add_new( self, event ):
