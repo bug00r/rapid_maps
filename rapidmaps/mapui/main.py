@@ -13,6 +13,7 @@ from rapidmaps.core.zip_utils import extract_map_name, extract_map_name_no_execp
     MapFileException, MapFileNotExistException
 
 from rapidmaps.map.workflow.init import IconInitWF, ShapeInitWF, HistoryInitWF
+from rapidmaps.map.workflow.canvas import CanvasClickWF, WFCanvasClickEvent, WFCanvasClickEventType
 
 
 def remove_from_list(shape, a_list: list):
@@ -40,6 +41,12 @@ class RapidMapFrame(MainFrame):
         ShapeInitWF(self).process()
         IconInitWF(self).process()
         HistoryInitWF(self).process()
+
+        self._click_wf = CanvasClickWF(self)
+
+    @property
+    def map(self):
+        return self._map
 
     @property
     def map_history(self):
@@ -73,6 +80,14 @@ class RapidMapFrame(MainFrame):
     def recalc_map_list_size(self):
         return self._recalc_map_list_size
 
+    @property
+    def edit_enabled(self):
+        return self.__edit_enabled
+
+    @property
+    def set_edit_by(self):
+        return self.__set_edit_by
+
     def on_left_navi_resize_done(self, event):
         self._recalc_map_list_size()
 
@@ -99,15 +114,7 @@ class RapidMapFrame(MainFrame):
         event.Skip()
 
     def canvasOnLeftDown(self, event):
-        self._ms.set(MapStateType.MOUSE_LEFT, event.EventType)
-        self._ms.set(MapStateType.MOUSE_LEFT_POS, event.Position)
-
-        if not self._mst.is_moving_mode_active and self._mst.is_selection_mode_active:
-            foundShape = self._map.single_select_at(event.Position.x, event.Position.y)
-            if foundShape:
-                self.__edit_enabled(True)
-                self.__set_edit_by(foundShape)
-        event.Skip()
+        self._click_wf.process(WFCanvasClickEvent(WFCanvasClickEventType.LEFT_MOUSE_DOWN, event))
 
     def canvasOnMotion(self, event):
         self._ms.set(MapStateType.MOUSE_POS, event.Position)
@@ -121,16 +128,7 @@ class RapidMapFrame(MainFrame):
             self._ms.set(MapStateType.SELECTION_IS_MOVING, False)
 
     def canvasOnLeftUp(self, event):
-        self._ms.set(MapStateType.MOUSE_LEFT, event.EventType)
-        self._ms.set(MapStateType.MOUSE_LEFT_RELEASE_POS, event.Position)
-
-        if self._mst.was_selection_area_active:
-            self._map.area_selection_at(self._mst.current_selected_area)
-        if self.should_add_entity() and self._cur_shape_btn is not None:
-            self._map.add_shape_obj(self._all_shape_btns.get(self._cur_shape_btn, 'unknown'),
-                                    event.Position.x, event.Position.y)
-
-        event.Skip()
+        self._click_wf.process(WFCanvasClickEvent(WFCanvasClickEventType.LEFT_MOUSE_UP, event))
 
     def _canvas_set_key(self, event):
         keycode = event.GetKeyCode()
