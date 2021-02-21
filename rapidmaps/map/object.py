@@ -14,7 +14,6 @@ from rapidmaps.core.zip_utils import MapFileNotExistException, extract_map_name
 class MapBackground(object):
     def __init__(self):
         self._image = None
-        #self._path = None
         self._bitmap = None
         self._file_size = 0
         self._changed = False
@@ -43,14 +42,6 @@ class MapBackground(object):
     def image(self, new_image: wx.Image):
         self._image = new_image
 
-    """   @property
-    def path(self) -> Path:
-        return self._path
-
-    @path.setter
-    def path(self, _path: Path):
-        self._path = _path
-    """
     @property
     def bitmap(self):
         used_bitmap = self._bitmap
@@ -204,9 +195,10 @@ class MapObjectWriter(object):
 
             mapzip.writestr('index.map', etree.tostring(root, pretty_print=True))
 
-            imageBytes = bytes()
-            ioBufferbase = io.BytesIO(imageBytes)
-            ioBuffer = io.BufferedWriter(raw=ioBufferbase, buffer_size=self._map_object.background.file_size)
-            self._map_object.background.image.SaveFile(ioBuffer, self._map_object.background.image.GetType())
-            ioBuffer.flush()
-            mapzip.writestr('background.img', ioBufferbase.getbuffer())
+            if self._map_object.background.image and self._map_object.background.file_size > 0:
+                imageBytes = bytes()
+                ioBufferbase = io.BytesIO(imageBytes)
+                ioBuffer = io.BufferedWriter(raw=ioBufferbase, buffer_size=self._map_object.background.file_size)
+                self._map_object.background.image.SaveFile(ioBuffer, self._map_object.background.image.GetType())
+                ioBuffer.flush()
+                mapzip.writestr('background.img', ioBufferbase.getbuffer())

@@ -8,7 +8,7 @@ from rapidmaps.map.state import MapStateType
 from rapidmaps.map.shape import *
 from rapidmaps.map.meta import MapHistoryLoader, MapHistoryWriter, Map
 from rapidmaps.map.base import RapidMap
-from rapidmaps.map.object import MapToObjectTransformator, MapObjectWriter
+from rapidmaps.map.object import MapToObjectTransformator, MapObjectWriter, MapObject
 from rapidmaps.core.zip_utils import extract_map_name, extract_map_name_no_execpt,\
     MapFileException, MapFileNotExistException
 
@@ -288,7 +288,10 @@ class RapidMapFrame(MainFrame):
                 if len(new_map_name) > 0:
                     self.m_map_history_list.InsertItem(0, new_map_name)
                     zip_file_name = re.sub(r"\W", "_", new_map_name)
-                    self._map_history.add(Map(new_map_name, self._appconfig.map_save_path / f"{zip_file_name}.zip"))
+                    new_map = Map(new_map_name, self._appconfig.map_save_path / f"{zip_file_name}.zip")
+                    self._map_history.add(new_map)
+                    self._map.map_object = MapObject(new_map)
+                    self._do_map_save()
                 else:
                     wx.MessageDialog(self, "Unusable Map Name!!",
                                      style=wx.OK_DEFAULT | wx.ICON_ERROR).ShowModal()
